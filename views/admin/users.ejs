@@ -1,0 +1,524 @@
+<%- include('../partials/header', { 
+    title: 'Manage Users', 
+    user: user,
+    hideNav: true 
+}) %>
+
+<%- include('../partials/admin-nav', { 
+    currentPage: 'users' 
+}) %>
+<div class="container">
+    <div class="admin-header">
+        <h1>👥 Manage Users</h1>
+        <p>View and manage all registered users</p>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="admin-filters">
+        <form id="searchForm" method="GET" action="/admin/users">
+            <div class="search-box">
+                <input type="text" name="search" id="searchUsers" 
+                       value="<%= searchParams.search %>" 
+                       placeholder="Search users by name, email, university ID..." 
+                       class="search-input">
+                <button type="submit" class="btn-search">🔍 Search</button>
+            </div>
+            <div class="filter-group">
+                <select name="role" id="roleFilter" class="filter-select">
+                    <option value="all" <%= searchParams.role === 'all' ? 'selected' : '' %>>All Roles</option>
+                    <option value="student" <%= searchParams.role === 'student' ? 'selected' : '' %>>Students</option>
+                    <option value="admin" <%= searchParams.role === 'admin' ? 'selected' : '' %>>Admins</option>
+                </select>
+                <select name="status" id="statusFilter" class="filter-select">
+                    <option value="all" <%= searchParams.status === 'all' ? 'selected' : '' %>>All Status</option>
+                    <option value="active" <%= searchParams.status === 'active' ? 'selected' : '' %>>Active</option>
+                    <option value="suspended" <%= searchParams.status === 'suspended' ? 'selected' : '' %>>Suspended</option>
+                </select>
+                <button type="submit" class="btn-primary">Apply Filters</button>
+                <a href="/admin/users" class="btn-secondary">Clear All</a>
+            </div>
+        </form>
+
+        <!-- Search Results Info -->
+        <% if (searchParams.search || searchParams.role !== 'all' || searchParams.status !== 'all') { %>
+            <div class="search-results-info">
+                <p>
+                    Found <strong><%= searchParams.totalUsers %></strong> user<%= searchParams.totalUsers !== 1 ? 's' : '' %>
+                    <% if (searchParams.search) { %> matching "<strong><%= searchParams.search %></strong>"<% } %>
+                    <% if (searchParams.role !== 'all') { %> with role <strong><%= searchParams.role %></strong><% } %>
+                    <% if (searchParams.status !== 'all') { %> and status <strong><%= searchParams.status %></strong><% } %>
+                </p>
+            </div>
+        <% } %>
+    </div>
+
+    <!-- Users Table -->
+    <div class="table-container">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th>Items Posted</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (users && users.length > 0) { %>
+                    <% users.forEach(userItem => { %>
+                    <tr>
+                        <td>
+                            <strong><%= userItem.name %></strong>
+                            <% if (userItem._id.toString() === user._id.toString()) { %>
+                                <span class="badge-you">You</span>
+                            <% } %>
+                        </td>
+                        <td><%= userItem.email %></td>
+                        <td>
+                            <span class="role-badge role-<%= userItem.role %>">
+                                <%= userItem.role %>
+                            </span>
+                        </td>
+                        <td><%= new Date(userItem.createdAt).toLocaleDateString() %></td>
+                        <td><%= userItem.itemsCount || 0 %></td>
+                        <td>
+                            <% if (userItem.isSuspended) { %>
+                                <span class="status-badge status-suspended">Suspended</span>
+                                <% if (userItem.suspensionReason) { %>
+                                    <br><small>Reason: <%= userItem.suspensionReason %></small>
+                                <% } %>
+                            <% } else if (userItem.isBanned) { %>
+                                <span class="status-badge status-banned">Banned</span>
+                            <% } else { %>
+                                <span class="status-badge status-active">Active</span>
+                            <% } %>
+                        </td>
+                        <td class="action-buttons">
+                            <% if (userItem._id.toString() !== user._id.toString()) { %>
+                                <a href="/admin/users/<%= userItem._id %>/history" class="btn-history" title="View User History">📊 History</a>
+                                <button onclick="changeRole('<%= userItem._id %>', '<%= userItem.role %>')" 
+                                        class="btn-role">🔄 Role</button>
+                                
+                                <% if (!userItem.isSuspended) { %>
+                                    <button onclick="suspendUser('<%= userItem._id %>', '<%= userItem.name %>')" 
+                                            class="btn-warning">⚠️ Suspend</button>
+                                <% } else { %>
+                                    <button onclick="unsuspendUser('<%= userItem._id %>', '<%= userItem.name %>')" 
+                                            class="btn-success">✅ Unsuspend</button>
+                                <% } %>
+                                
+                                <button onclick="deleteUser('<%= userItem._id %>')" 
+                                        class="btn-delete">🗑️ Delete</button>
+                            <% } else { %>
+                                <span class="text-muted">Current user</span>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="7" class="no-data">
+                            <% if (searchParams.search || searchParams.role !== 'all' || searchParams.status !== 'all') { %>
+                                No users found matching your search criteria.
+                                <br><a href="/admin/users" class="btn-link">Show all users</a>
+                            <% } else { %>
+                                No users found in the system.
+                            <% } %>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <% if (searchParams.totalPages > 1) { %>
+        <div class="pagination">
+            <% if (searchParams.currentPage > 1) { %>
+                <a href="/admin/users?search=<%= searchParams.search %>&role=<%= searchParams.role %>&status=<%= searchParams.status %>&page=<%= searchParams.currentPage - 1 %>" 
+                   class="pagination-btn">← Previous</a>
+            <% } %>
+            
+            <span class="pagination-info">
+                Page <%= searchParams.currentPage %> of <%= searchParams.totalPages %>
+            </span>
+            
+            <% if (searchParams.currentPage < searchParams.totalPages) { %>
+                <a href="/admin/users?search=<%= searchParams.search %>&role=<%= searchParams.role %>&status=<%= searchParams.status %>&page=<%= searchParams.currentPage + 1 %>" 
+                   class="pagination-btn">Next →</a>
+            <% } %>
+        </div>
+    <% } %>
+
+    <!-- User Statistics -->
+    <div class="user-stats">
+        <h3>User Statistics</h3>
+        <div class="stats-cards">
+            <div class="stat-card">
+                <h4>Total Users</h4>
+                <p class="stat-number"><%= userStats.totalUsers || 0 %></p>
+            </div>
+            <div class="stat-card">
+                <h4>Students</h4>
+                <p class="stat-number"><%= userStats.studentCount || 0 %></p>
+            </div>
+            <div class="stat-card">
+                <h4>Admins</h4>
+                <p class="stat-number"><%= userStats.adminCount || 0 %></p>
+            </div>
+            <div class="stat-card">
+                <h4>Suspended</h4>
+                <p class="stat-number"><%= userStats.suspendedCount || 0 %></p>
+            </div>
+            <div class="stat-card">
+                <h4>Banned</h4>
+                <p class="stat-number"><%= userStats.bannedCount || 0 %></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-submit form when filters change 
+let searchTimeout;
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchUsers');
+    const roleFilter = document.getElementById('roleFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    
+    // Auto-search after typing stops
+    searchInput.addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            document.getElementById('searchForm').submit();
+        }, 800);
+    });
+    
+    // Auto-submit when filters change
+    roleFilter.addEventListener('change', function() {
+        document.getElementById('searchForm').submit();
+    });
+    
+    statusFilter.addEventListener('change', function() {
+        document.getElementById('searchForm').submit();
+    });
+});
+
+function changeRole(userId, currentRole) {
+    const newRole = prompt(`Change role for user (current: ${currentRole}):\nEnter 'student' or 'admin'`, currentRole);
+    
+    if (newRole && ['student', 'admin'].includes(newRole.toLowerCase())) {
+        fetch(`/admin/users/${userId}/role`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ role: newRole.toLowerCase() })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+}
+
+function suspendUser(userId, userName) {
+    const reason = prompt(`Enter reason for suspending ${userName}:`);
+    
+    if (reason !== null) {
+        fetch(`/admin/users/${userId}/suspend`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ reason: reason })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+}
+
+function unsuspendUser(userId, userName) {
+    if (confirm(`Are you sure you want to unsuspend ${userName}?`)) {
+        fetch(`/admin/users/${userId}/unsuspend`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+}
+
+function deleteUser(userId) {
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+        fetch(`/admin/users/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+}
+</script>
+
+<style>
+.admin-filters {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.search-box {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.search-input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.btn-search, .btn-primary {
+    background: #007bff;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.filter-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-select {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    min-width: 150px;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.search-results-info {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #e7f3ff;
+    border-radius: 5px;
+    border-left: 4px solid #007bff;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.pagination-btn {
+    background: #007bff;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.pagination-info {
+    color: #666;
+    font-weight: 500;
+}
+
+.btn-link {
+    color: #007bff;
+    text-decoration: none;
+    margin-top: 0.5rem;
+    display: inline-block;
+}
+
+/* Rest of your existing styles remain the same */
+.role-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.role-student { background: #e3f2fd; color: #1565c0; }
+.role-admin { background: #fff3e0; color: #ef6c00; }
+
+.badge-you {
+    background: #4caf50;
+    color: white;
+    padding: 0.1rem 0.4rem;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    margin-left: 0.5rem;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.status-suspended { background: #fff3cd; color: #856404; }
+.status-banned { background: #f8d7da; color: #721c24; }
+.status-active { background: #d4edda; color: #155724; }
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-history, .btn-role, .btn-warning, .btn-success, .btn-delete {
+    padding: 0.25rem 0.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-history { background: #6f42c1; color: white; }
+.btn-role { background: #ffc107; color: #212529; }
+.btn-warning { background: #fd7e14; color: white; }
+.btn-success { background: #28a745; color: white; }
+.btn-delete { background: #dc3545; color: white; }
+
+.user-stats {
+    margin-top: 2rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.stat-card {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #007bff;
+    margin: 0.5rem 0 0 0;
+}
+
+.text-muted {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.no-data {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 2rem;
+}
+
+.table-container {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.admin-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+.admin-header {
+    margin-bottom: 2rem;
+}
+
+.admin-header h1 {
+    margin: 0;
+    color: #333;
+}
+
+.admin-header p {
+    margin: 0.5rem 0 0 0;
+    color: #666;
+}
+</style>
+
+<%- include('../partials/footer') %>

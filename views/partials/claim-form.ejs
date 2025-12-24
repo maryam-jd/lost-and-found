@@ -1,0 +1,46 @@
+<!-- Claim Form Modal -->
+<div id="claimModal" class="claim-form-card" style="display: none; margin-top: 2rem;">
+    <h3 style="margin-top: 0; color: #0369a1;">📋 Submit Your Claim</h3>
+    <p>Please provide details to prove this is your item:</p>
+    
+    <form action="/items/<%= item._id %>/claim" method="POST">
+        <div class="form-group">
+            <label for="message">Why do you think this is your item? *</label>
+            <textarea id="message" name="message" class="form-textarea" 
+                     placeholder="Describe why you believe this is your lost item. Include specific details like brand, color, scratches, marks, or contents that prove ownership..."
+                     required></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="proofDescription">Additional Proof</label>
+            <textarea id="proofDescription" name="proofDescription" class="form-textarea"
+                     placeholder="Any additional proof you can provide (receipts, photos, serial numbers, etc.)"></textarea>
+        </div>
+        
+        <div class="contact-info">
+            <h4>Contact Information</h4>
+            
+            <div class="form-group">
+                <label for="contactEmail">Email *</label>
+                <input type="email" id="contactEmail" name="contactEmail" 
+                       value="<%= user ? user.email : '' %>" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="contactPhone">Phone Number</label>
+                <input type="tel" id="contactPhone" name="contactPhone" 
+                       placeholder="Optional">
+            </div>
+        </div>
+        
+        <div class="form-note">
+            <strong>Note:</strong> Your claim will be reviewed by the person who found this item. 
+            They will contact you via the email you provide.
+        </div>
+        
+        <div class="form-actions" style="margin-top: 1.5rem;">
+            <button type="button" class="btn btn-secondary" onclick="hideClaimForm()">Cancel</button>
+            <button type="submit" class="btn btn-claim">✅ Submit Claim</button>
+        </div>
+    </form>
+</div>

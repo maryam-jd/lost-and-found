@@ -1,0 +1,864 @@
+<!-- Dashboard Navigation -->
+<nav class="dashboard-nav">
+    <!-- Mobile Menu Button -->
+    <button class="mobile-nav-toggle" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Desktop Horizontal Navigation -->
+    <div class="nav-desktop">
+        <a href="/dashboard" class="nav-item <%= typeof activeTab !== 'undefined' && activeTab === 'dashboard' ? 'active' : '' %>">
+            <span class="nav-icon">📊</span>
+            <span class="nav-text">Dashboard</span>
+        </a>
+        <a href="/items/report-lost" class="nav-item <%= typeof activeTab !== 'undefined' && activeTab === 'report-lost' ? 'active' : '' %>">
+            <span class="nav-icon">📝</span>
+            <span class="nav-text">Report Lost Item</span>
+        </a>
+        
+        <a href="/items/report-found" class="nav-item <%= typeof activeTab !== 'undefined' && activeTab === 'report-found' ? 'active' : '' %>">
+            <span class="nav-icon">🔍</span>
+            <span class="nav-text">Report Found Item</span>
+        </a>
+        
+        <a href="/items" class="nav-item <%= typeof activeTab !== 'undefined' && activeTab === 'all-items' ? 'active' : '' %>">
+            <span class="nav-icon">📦</span>
+            <span class="nav-text">All Items</span>
+        </a>
+        
+        <a href="/dashboard/my-claims" class="nav-item <%= typeof activeTab !== 'undefined' && activeTab === 'my-claims' ? 'active' : '' %>">
+            <span class="nav-icon">🎫</span>
+            <span class="nav-text">My Claims</span>
+        </a>
+
+        <!-- Notification Bell -->
+        <div class="notification-container">
+            <button class="notification-bell" id="notificationBell">
+                🔔
+                <span class="notification-count" id="notificationCount">0</span>
+            </button>
+        </div>
+
+        <!-- User Profile Dropdown -->
+        <div class="nav-user-profile">
+            <button class="profile-toggle">
+                <span class="profile-avatar">👤</span>
+                <span class="profile-name"><%= user.name %></span>
+                <span class="dropdown-arrow">▼</span>
+            </button>
+            <div class="profile-dropdown">
+                <a href="/dashboard" class="profile-link">
+                    <span class="link-icon">👤</span>
+                    User Profile
+                </a>
+                <div class="dropdown-divider"></div>
+                <form action="/auth/logout" method="POST" class="logout-form-inline">
+                    <button type="submit" class="profile-link logout-link">
+                        <span class="link-icon">🚪</span>
+                        Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Vertical Navigation -->
+    <div class="nav-mobile">
+        <div class="mobile-nav-header">
+            <div class="user-welcome">
+                <div class="welcome-avatar">👋</div>
+                <div class="welcome-text">
+                    <div class="welcome-greeting">Welcome back!</div>
+                    <div class="user-name"><%= user.name %></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mobile-nav-items">
+            <a href="/dashboard" class="mobile-nav-item <%= typeof activeTab !== 'undefined' && activeTab === 'dashboard' ? 'active' : '' %>">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Dashboard</span>
+            </a>
+            <a href="/items/report-lost" class="mobile-nav-item <%= typeof activeTab !== 'undefined' && activeTab === 'report-lost' ? 'active' : '' %>">
+                <span class="nav-icon">📝</span>
+                <span class="nav-text">Report Lost Item</span>
+            </a>
+            
+            <a href="/items/report-found" class="mobile-nav-item <%= typeof activeTab !== 'undefined' && activeTab === 'report-found' ? 'active' : '' %>">
+                <span class="nav-icon">🔍</span>
+                <span class="nav-text">Report Found Item</span>
+            </a>
+            
+            <a href="/items" class="mobile-nav-item <%= typeof activeTab !== 'undefined' && activeTab === 'all-items' ? 'active' : '' %>">
+                <span class="nav-icon">📦</span>
+                <span class="nav-text">All Items</span>
+            </a>
+            
+            <a href="/dashboard/my-claims" class="mobile-nav-item <%= typeof activeTab !== 'undefined' && activeTab === 'my-claims' ? 'active' : '' %>">
+                <span class="nav-icon">🎫</span>
+                <span class="nav-text">My Claims</span>
+            </a>
+            
+            <!-- Mobile Notification Bell -->
+            <div class="mobile-nav-item notification-bell-mobile" id="notificationBellMobile">
+                <span class="nav-icon">🔔</span>
+                <span class="nav-text">Notifications</span>
+                <span class="notification-count-mobile" id="notificationCountMobile">0</span>
+            </div>
+            
+            <a href="/dashboard" class="mobile-nav-item <%= typeof activeTab !== 'undefined' && activeTab === 'profile' ? 'active' : '' %>">
+                <span class="nav-icon">👤</span>
+                <span class="nav-text">User Profile</span>
+            </a>
+
+            <div class="mobile-nav-divider"></div>
+
+            <form action="/auth/logout" method="POST" class="logout-form-mobile">
+                <button type="submit" class="mobile-nav-item logout-link">
+                    <span class="nav-icon">🚪</span>
+                    <span class="nav-text">Logout</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<!-- Notification Dropdown -->
+<div class="notification-dropdown" id="notificationDropdown">
+    <div class="notification-header">
+        <h4>Notifications</h4>
+        <div class="notification-actions">
+            <button id="markAllRead" class="btn-mark-read">Mark All Read</button>
+            <button id="clearNotifications" class="btn-clear-all">Clear All</button>
+        </div>
+    </div>
+    <div class="notification-list" id="notificationList">
+        <div class="no-notifications">
+            <p>Loading notifications...</p>
+        </div>
+    </div>
+    <div class="notification-footer">
+        <small>You're all caught up!</small>
+    </div>
+</div>
+<div class="notification-backdrop" id="notificationBackdrop"></div>
+
+<style>
+    /* Notification Styles for Dashboard */
+    .notification-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        margin-left: 10px;
+    }
+
+    .notification-bell {
+        background: none;
+        border: none;
+        cursor: pointer;
+        position: relative;
+        font-size: 1.3rem;
+        padding: 8px 12px;
+        color: #333;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .notification-bell:hover {
+        background: rgba(0,0,0,0.05);
+    }
+
+    .notification-count {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: #ff4444;
+        color: white;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        font-size: 11px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+    }
+
+    .notification-count-mobile {
+        background: #ff4444;
+        color: white;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        font-size: 11px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        margin-left: auto;
+    }
+
+    .notification-bell-mobile {
+        position: relative;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .notification-dropdown {
+        display: none;
+        position: fixed;
+        top: 70px;
+        right: 20px;
+        width: 380px;
+        max-height: 70vh;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        z-index: 9999;
+        overflow: hidden;
+    }
+
+    .notification-dropdown.show {
+        display: block;
+        animation: slideIn 0.2s ease-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .notification-header {
+        padding: 16px 20px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .notification-header h4 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .notification-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-mark-read, .btn-clear-all {
+        font-size: 12px;
+        padding: 6px 12px;
+        border: 1px solid #dee2e6;
+        background: white;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+
+    .btn-mark-read {
+        color: #007bff;
+        border-color: #007bff;
+    }
+
+    .btn-mark-read:hover {
+        background: #007bff;
+        color: white;
+    }
+
+    .btn-clear-all {
+        color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .btn-clear-all:hover {
+        background: #dc3545;
+        color: white;
+    }
+
+    .notification-list {
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+
+    .notification-item {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f8f9fa;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        position: relative;
+    }
+
+    .notification-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .notification-item.unread {
+        background-color: #e7f3ff;
+        border-left: 4px solid #007bff;
+    }
+
+    .notification-item.read {
+        background-color: white;
+        opacity: 0.8;
+    }
+
+    .notification-item:last-child {
+        border-bottom: none;
+    }
+
+    .notification-message {
+        margin: 0 0 6px 0;
+        font-size: 14px;
+        line-height: 1.4;
+        color: #495057;
+        word-wrap: break-word;
+    }
+
+    .notification-item.read .notification-message {
+        color: #6c757d;
+    }
+
+    .notification-time {
+        font-size: 12px;
+        color: #6c757d;
+        margin: 0;
+    }
+
+    .no-notifications {
+        padding: 40px 20px;
+        text-align: center;
+        color: #6c757d;
+    }
+
+    .no-notifications p {
+        margin: 0 0 8px 0;
+        font-size: 14px;
+    }
+
+    .no-notifications small {
+        font-size: 12px;
+    }
+
+    .notification-footer {
+        padding: 12px 20px;
+        background: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+        text-align: center;
+    }
+
+    .notification-footer small {
+        color: #6c757d;
+        font-size: 12px;
+    }
+
+    .notification-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.3);
+        z-index: 9998;
+        display: none;
+    }
+
+    .notification-backdrop.show {
+        display: block;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {
+        .notification-dropdown {
+            width: 95vw !important;
+            left: 2.5vw !important;
+            right: 2.5vw !important;
+            top: 60px;
+            max-height: 80vh;
+            border-radius: 16px;
+        }
+
+        .notification-container {
+            margin-left: 0;
+        }
+
+        .notification-header {
+            padding: 14px 16px;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .notification-header h4 {
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .notification-actions {
+            justify-content: center;
+        }
+
+        .btn-mark-read, .btn-clear-all {
+            flex: 1;
+            min-width: 120px;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .notification-item {
+            padding: 14px 16px;
+        }
+
+        .notification-message {
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .notification-list {
+            max-height: 60vh;
+        }
+
+        .notification-bell-mobile {
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .notification-bell-mobile:active {
+            background-color: #f8f9fa;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .notification-dropdown {
+            width: 92vw !important;
+            left: 4vw !important;
+            right: 4vw !important;
+        }
+
+        .notification-header {
+            padding: 12px 14px;
+        }
+
+        .notification-item {
+            padding: 12px 14px;
+        }
+
+        .btn-mark-read, .btn-clear-all {
+            min-width: 110px;
+            padding: 10px 14px;
+        }
+    }
+
+    /* Touch device improvements */
+    @media (hover: none) and (pointer: coarse) {
+        .notification-item {
+            padding: 18px 20px;
+        }
+        
+        .btn-mark-read, .btn-clear-all {
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+        
+        .notification-bell {
+            padding: 12px 16px;
+        }
+    }
+</style>
+
+<script>
+    // Mobile navigation toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileToggle = document.querySelector('.mobile-nav-toggle');
+        const mobileNav = document.querySelector('.nav-mobile');
+        const profileToggle = document.querySelector('.profile-toggle');
+        const profileDropdown = document.querySelector('.profile-dropdown');
+
+        // Mobile menu toggle
+        if (mobileToggle) {
+            mobileToggle.addEventListener('click', function() {
+                this.classList.toggle('active');
+                mobileNav.classList.toggle('active');
+            });
+        }
+
+        // Profile dropdown toggle
+        if (profileToggle) {
+            profileToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('active');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function() {
+                profileDropdown.classList.remove('active');
+            });
+        }
+
+        // Close mobile menu when clicking on a link
+        const mobileLinks = document.querySelectorAll('.mobile-nav-item');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (mobileToggle) mobileToggle.classList.remove('active');
+                if (mobileNav) mobileNav.classList.remove('active');
+            });
+        });
+    });
+
+    // Notification Manager
+    class NotificationManager {
+        constructor() {
+            this.notificationCount = document.getElementById('notificationCount');
+            this.notificationCountMobile = document.getElementById('notificationCountMobile');
+            this.notificationBell = document.getElementById('notificationBell');
+            this.notificationBellMobile = document.getElementById('notificationBellMobile');
+            this.notificationDropdown = document.getElementById('notificationDropdown');
+            this.notificationList = document.getElementById('notificationList');
+            this.markAllReadBtn = document.getElementById('markAllRead');
+            this.clearNotificationsBtn = document.getElementById('clearNotifications');
+            this.backdrop = document.getElementById('notificationBackdrop');
+            
+            this.isLoading = false;
+            this.init();
+        }
+
+        init() {
+            this.loadNotifications();
+            this.setupEventListeners();
+            
+            // Load notifications every 30 seconds
+            setInterval(() => this.loadNotifications(), 30000);
+        }
+
+        setupEventListeners() {
+            // Toggle dropdown (desktop)
+            if (this.notificationBell) {
+                this.notificationBell.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.toggleDropdown();
+                });
+            }
+
+            // Toggle dropdown (mobile)
+            if (this.notificationBellMobile) {
+                this.notificationBellMobile.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.toggleDropdown();
+                    
+                    // Close mobile menu when opening notifications
+                    const mobileNav = document.querySelector('.nav-mobile');
+                    const mobileToggle = document.querySelector('.mobile-nav-toggle');
+                    if (mobileNav && mobileToggle) {
+                        mobileNav.classList.remove('active');
+                        mobileToggle.classList.remove('active');
+                    }
+                });
+            }
+
+            // Mark all as read
+            if (this.markAllReadBtn) {
+                this.markAllReadBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.markAllAsRead();
+                });
+            }
+
+            // Clear all notifications
+            if (this.clearNotificationsBtn) {
+                this.clearNotificationsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.clearAllNotifications();
+                });
+            }
+
+            // Close dropdown when clicking backdrop
+            if (this.backdrop) {
+                this.backdrop.addEventListener('click', () => {
+                    this.hideDropdown();
+                });
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (this.notificationDropdown && !this.notificationDropdown.contains(e.target) && 
+                    e.target !== this.notificationBell && e.target !== this.notificationBellMobile) {
+                    this.hideDropdown();
+                }
+            });
+
+            // Close on escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    this.hideDropdown();
+                }
+            });
+
+            // Prevent dropdown from closing when clicking inside
+            if (this.notificationDropdown) {
+                this.notificationDropdown.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+            }
+        }
+
+        toggleDropdown() {
+            if (this.notificationDropdown.classList.contains('show')) {
+                this.hideDropdown();
+            } else {
+                this.showDropdown();
+            }
+        }
+
+        showDropdown() {
+            this.notificationDropdown.classList.add('show');
+            if (this.backdrop) this.backdrop.classList.add('show');
+            this.loadNotifications();
+        }
+
+        hideDropdown() {
+            this.notificationDropdown.classList.remove('show');
+            if (this.backdrop) this.backdrop.classList.remove('show');
+        }
+
+        async loadNotifications() {
+            if (this.isLoading) return;
+            
+            this.isLoading = true;
+            try {
+                const response = await fetch('/api/notifications');
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    this.updateNotificationCount(data.unreadCount);
+                    this.renderNotifications(data.notifications);
+                } else {
+                    this.renderError(data.error || 'Failed to load notifications');
+                }
+            } catch (error) {
+                console.error('Failed to load notifications:', error);
+                this.renderError('Failed to load notifications. Please try again.');
+            } finally {
+                this.isLoading = false;
+            }
+        }
+
+        updateNotificationCount(count) {
+            const displayCount = count > 99 ? '99+' : count;
+            
+            // Always show the count, even if it's 0
+            if (this.notificationCount) {
+                this.notificationCount.textContent = displayCount;
+                this.notificationCount.style.display = 'flex';
+                // Add animation for new notifications
+                if (count > 0) {
+                    this.notificationCount.style.animation = 'pulse 0.5s ease-in-out';
+                    setTimeout(() => {
+                        if (this.notificationCount) this.notificationCount.style.animation = '';
+                    }, 500);
+                }
+            }
+            
+            if (this.notificationCountMobile) {
+                this.notificationCountMobile.textContent = displayCount;
+                this.notificationCountMobile.style.display = 'flex';
+            }
+        }
+
+        renderNotifications(notifications) {
+            if (!notifications || notifications.length === 0) {
+                this.notificationList.innerHTML = `
+                    <div class="no-notifications">
+                        <p>No notifications yet</p>
+                        <small>When someone claims your items, you'll see notifications here.</small>
+                    </div>
+                `;
+                return;
+            }
+
+            this.notificationList.innerHTML = notifications.map(notification => `
+                <div class="notification-item ${notification.isRead ? 'read' : 'unread'}" 
+                     data-id="${notification._id}"
+                     onclick="window.notificationManager.markAsRead('${notification._id}')">
+                    <p class="notification-message">${this.escapeHtml(notification.message)}</p>
+                    <p class="notification-time">${this.formatTime(notification.createdAt)}</p>
+                </div>
+            `).join('');
+        }
+
+        renderError(message) {
+            this.notificationList.innerHTML = `
+                <div class="no-notifications">
+                    <p style="color: #dc3545;">${message}</p>
+                    <button onclick="window.notificationManager.loadNotifications()" 
+                            style="margin-top: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        Retry
+                    </button>
+                </div>
+            `;
+        }
+
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async markAsRead(notificationId) {
+            try {
+                const response = await fetch(`/api/notifications/${notificationId}/read`, {
+                    method: 'PUT'
+                });
+                
+                if (response.ok) {
+                    this.loadNotifications();
+                } else {
+                    console.error('Failed to mark notification as read');
+                }
+            } catch (error) {
+                console.error('Failed to mark notification as read:', error);
+            }
+        }
+
+        async markAllAsRead() {
+            try {
+                const response = await fetch('/api/notifications/read', {
+                    method: 'PUT'
+                });
+                
+                if (response.ok) {
+                    this.loadNotifications();
+                    this.showToast('All notifications marked as read');
+                } else {
+                    console.error('Failed to mark all as read');
+                    this.showToast('Failed to mark all as read', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to mark all as read:', error);
+                this.showToast('Failed to mark all as read', 'error');
+            }
+        }
+
+        async clearAllNotifications() {
+            if (!confirm('Are you sure you want to clear all notifications?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/notifications', {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    this.loadNotifications();
+                    this.showToast('All notifications cleared');
+                } else {
+                    console.error('Failed to clear notifications');
+                    this.showToast('Failed to clear notifications', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to clear notifications:', error);
+                this.showToast('Failed to clear notifications', 'error');
+            }
+        }
+
+        showToast(message, type = 'success') {
+            // Simple toast notification
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'error' ? '#dc3545' : '#28a745'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 6px;
+                z-index: 10000;
+                animation: slideInRight 0.3s ease-out;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        formatTime(dateString) {
+            try {
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+
+                if (diffMins < 1) return 'Just now';
+                if (diffMins < 60) return `${diffMins}m ago`;
+                if (diffHours < 24) return `${diffHours}h ago`;
+                if (diffDays < 7) return `${diffDays}d ago`;
+                
+                return date.toLocaleDateString();
+            } catch (error) {
+                return 'Recently';
+            }
+        }
+    }
+
+    // Initialize notification manager when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        window.notificationManager = new NotificationManager();
+    });
+
+    // Add pulse animation for new notifications
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+</script>

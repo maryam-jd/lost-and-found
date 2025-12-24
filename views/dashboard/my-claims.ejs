@@ -1,0 +1,50 @@
+<%- include('../partials/header', { title: title, user: user }) %>
+<%- include('../partials/dashboard-nav', { activeTab: 'my-claims', user: user }) %>
+
+<div class="dashboard-content">
+    <!-- Welcome Box -->
+    <div class="welcome-container">
+        <h1 class="welcome-title">My Claims</h1>
+        <p class="welcome-subtitle">Track your item claims and their status</p>
+    </div>
+
+    <!-- User's Claims Section -->
+    <div class="dashboard-section">
+        <div class="section-header">
+            <h2>🎫 My Claims</h2>
+        </div>
+
+        <% if (userClaims && userClaims.length > 0) { %>
+            <div class="claims-list">
+                <% userClaims.forEach(claim => { %>
+                    <div class="claim-item <%= claim.status %>">
+                        <div class="claim-header">
+                            <strong>Item: <%= claim.item ? claim.item.name : 'Unknown Item' %></strong>
+                            <span class="claim-status <%= claim.status %>">
+                                <%= claim.status.charAt(0).toUpperCase() + claim.status.slice(1) %>
+                            </span>
+                        </div>
+                        <p class="claim-message"><%= claim.claimMessage %></p>
+                        <p class="claim-date">Claimed on: <%= claim.createdAt.toLocaleDateString() %></p>
+                        <% if (claim.adminResponse) { %>
+                            <div class="admin-response">
+                                <strong>Admin Response:</strong> <%= claim.adminResponse %>
+                            </div>
+                        <% } %>
+                    </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <div class="empty-state">
+                <div class="empty-icon">🎫</div>
+                <h3>No claims yet</h3>
+                <p>You haven't made any claims yet. Browse items to claim lost belongings.</p>
+                <div class="empty-actions">
+                    <a href="/items" class="btn btn-primary">Browse Items</a>
+                </div>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

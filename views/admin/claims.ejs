@@ -1,0 +1,195 @@
+<%- include('../partials/header', { 
+    title: 'Manage Claims', 
+    user: user,
+    hideNav: true 
+}) %>
+
+<%- include('../partials/admin-nav', { 
+    currentPage: 'claims' 
+}) %>
+<div class="container">
+    <div class="admin-header">
+        <h1>📋 Manage Claims</h1>
+        <p>Monitor all item claims (Approval is done by item founders)</p>
+    </div>
+
+    <!-- Pending Claims -->
+    <div class="claims-section">
+        <h2>⏳ Pending Claims (<%= pendingClaims.length %>)</h2>
+        <% if (pendingClaims && pendingClaims.length > 0) { %>
+            <div class="claims-grid">
+                <% pendingClaims.forEach(claim => { %>
+                <div class="claim-card">
+                    <div class="claim-header">
+                        <h3><%= claim.item ? claim.item.name : 'Item Not Found' %></h3>
+                        <span class="badge badge-pending">Pending</span>
+                    </div>
+                    
+                    <div class="claim-details">
+                        <p><strong>Claimant:</strong> <%= claim.claimant ? claim.claimant.name : 'Unknown' %> (<%= claim.claimant ? claim.claimant.email : 'No email' %>)</p>
+                        <p><strong>Item Founder:</strong> <%= claim.owner ? claim.owner.name : 'Unknown' %></p>
+                        <p><strong>Message:</strong> <%= claim.message %></p>
+                        <p><strong>Submitted:</strong> <%= new Date(claim.createdAt).toLocaleDateString() %></p>
+                        <p><strong>Status:</strong> Waiting for founder approval</p>
+                    </div>
+
+                    <div class="claim-actions">
+                        <!-- REMOVED: Approve/Reject buttons - Only founders can approve -->
+                        <% if (claim.item && claim.item._id) { %>
+                            <a href="/admin/items/<%= claim.item._id %>" class="btn-view">👁️ View Item</a>
+                        <% } else { %>
+                            <span class="btn-view disabled" title="Item not available">👁️ View Item</span>
+                        <% } %>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <p class="no-data">No pending claims</p>
+        <% } %>
+    </div>
+
+    <!-- Approved Claims -->
+    <div class="claims-section">
+        <h2>✅ Approved Claims (<%= approvedClaims.length %>)</h2>
+        <% if (approvedClaims && approvedClaims.length > 0) { %>
+            <div class="claims-grid">
+                <% approvedClaims.forEach(claim => { %>
+                <div class="claim-card resolved">
+                    <div class="claim-header">
+                        <h3><%= claim.item ? claim.item.name : 'Item Not Found' %></h3>
+                        <span class="badge badge-approved">Approved by Founder</span>
+                    </div>
+                    
+                    <div class="claim-details">
+                        <p><strong>Claimant:</strong> <%= claim.claimant ? claim.claimant.name : 'Unknown' %></p>
+                        <p><strong>Approved On:</strong> <%= new Date(claim.createdAt).toLocaleDateString() %></p>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <p class="no-data">No approved claims</p>
+        <% } %>
+    </div>
+
+    <!-- Rejected Claims -->
+    <div class="claims-section">
+        <h2>❌ Rejected Claims (<%= rejectedClaims.length %>)</h2>
+        <% if (rejectedClaims && rejectedClaims.length > 0) { %>
+            <div class="claims-grid">
+                <% rejectedClaims.forEach(claim => { %>
+                <div class="claim-card resolved">
+                    <div class="claim-header">
+                        <h3><%= claim.item ? claim.item.name : 'Item Not Found' %></h3>
+                        <span class="badge badge-rejected">Rejected by Founder</span>
+                    </div>
+                    
+                    <div class="claim-details">
+                        <p><strong>Claimant:</strong> <%= claim.claimant ? claim.claimant.name : 'Unknown' %></p>
+                        <p><strong>Rejected On:</strong> <%= new Date(claim.createdAt).toLocaleDateString() %></p>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <p class="no-data">No rejected claims</p>
+        <% } %>
+    </div>
+</div>
+
+<style>
+.claims-section {
+    margin-bottom: 3rem;
+}
+
+.claims-section h2 {
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.claims-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.claim-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-left: 4px solid #007bff;
+}
+
+.claim-card.resolved {
+    border-left-color: #6c757d;
+    opacity: 0.8;
+}
+
+.claim-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.claim-header h3 {
+    margin: 0;
+    color: #333;
+    flex: 1;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.badge-pending { background: #fff3cd; color: #856404; }
+.badge-approved { background: #d4edda; color: #155724; }
+.badge-rejected { background: #f8d7da; color: #721c24; }
+
+.claim-details p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.claim-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-view {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    text-decoration: none;
+    background: #17a2b8; 
+    color: white;
+}
+
+.btn-view.disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.no-data {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+</style>
+
+<%- include('../partials/footer') %>

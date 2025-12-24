@@ -1,0 +1,252 @@
+<%- include('../partials/header', { title: 'Item Details - Admin', user: user }) %>
+
+<div class="container">
+    <div class="admin-header">
+        <h1>📦 Item Details (Admin View)</h1>
+        <a href="/admin/items" class="btn-back">← Back to Items</a>
+    </div>
+
+    <% if (item) { %>
+        <div class="admin-item-details">
+            <!-- Item Info Card -->
+            <div class="detail-card">
+                <h2><%= item.name %></h2>
+                <div class="item-meta">
+                    <span class="badge badge-<%= item.type %>">
+                        <%= item.type === 'lost' ? '🔍 Lost' : '✅ Found' %>
+                    </span>
+                    <span class="badge badge-<%= item.status %>">
+                        <%= item.status %>
+                    </span>
+                    <span class="category"><%= item.category %></span>
+                </div>
+                
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <strong>Description:</strong>
+                        <p><%= item.description %></p>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <strong>Location:</strong>
+                        <p><%= item.location %></p>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <strong>Date:</strong>
+                        <p><%= new Date(item.date).toLocaleDateString() %></p>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <strong>Status:</strong>
+                        <p class="status-<%= item.status %>"><%= item.status %></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Owner Information -->
+            <div class="detail-card">
+                <h3>👤 Reported By</h3>
+                <div class="user-info">
+                    <p><strong>Name:</strong> <%= item.reportedBy ? item.reportedBy.name : 'Unknown' %></p>
+                    <p><strong>Email:</strong> <%= item.reportedBy ? item.reportedBy.email : 'Unknown' %></p>
+                    <p><strong>Role:</strong> <span class="role-<%= item.reportedBy ? item.reportedBy.role : 'unknown' %>">
+                        <%= item.reportedBy ? item.reportedBy.role : 'Unknown' %>
+                    </span></p>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="detail-card">
+                <h3>📞 Contact Information</h3>
+                <div class="contact-info">
+                    <p><strong>Email:</strong> <%= item.contactInfo.email %></p>
+                    <% if (item.contactInfo.phone) { %>
+                        <p><strong>Phone:</strong> <%= item.contactInfo.phone %></p>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- System Information -->
+            <div class="detail-card">
+                <h3>⚙️ System Information</h3>
+                <div class="system-info">
+                    <p><strong>Item ID:</strong> <code><%= item._id %></code></p>
+                    <p><strong>Created:</strong> <%= new Date(item.createdAt).toLocaleString() %></p>
+                    <p><strong>Last Updated:</strong> <%= new Date(item.updatedAt).toLocaleString() %></p>
+                    <% if (item.resolvedDate) { %>
+                        <p><strong>Resolved:</strong> <%= new Date(item.resolvedDate).toLocaleString() %></p>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Admin Actions -->
+            <div class="detail-card">
+                <h3>🛠️ Admin Actions</h3>
+                <div class="admin-actions">
+                    <% if (item.status !== 'returned') { %>
+                        <button onclick="markAsReturned('<%= item._id %>')" class="btn-success">✅ Mark as Returned</button>
+                    <% } %>
+                    
+                    <button onclick="deleteItem('<%= item._id %>')" class="btn-danger">🗑️ Delete Item</button>
+                    
+                    <% if (item.status === 'available') { %>
+                        <button onclick="markAsClaimPending('<%= item._id %>')" class="btn-warning">⏳ Mark as Claim Pending</button>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Claims Information -->
+            <div class="detail-card">
+                <h3>📋 Claims (<%= claims ? claims.length : 0 %>)</h3>
+                <% if (claims && claims.length > 0) { %>
+                    <div class="claims-list">
+                        <% claims.forEach(claim => { %>
+                        <div class="claim-item">
+                            <div class="claim-header">
+                                <strong><%= claim.claimant ? claim.claimant.name : 'Unknown' %></strong>
+                                <span class="badge badge-<%= claim.status %>"><%= claim.status %></span>
+                            </div>
+                            <p><%= claim.message %></p>
+                            <small>Submitted: <%= new Date(claim.createdAt).toLocaleString() %></small>
+                        </div>
+                        <% }) %>
+                    </div>
+                <% } else { %>
+                    <p class="no-data">No claims for this item</p>
+                <% } %>
+            </div>
+        </div>
+    <% } else { %>
+        <div class="error-message">
+            <p>Item not found</p>
+        </div>
+    <% } %>
+</div>
+
+<script>
+function markAsReturned(itemId) {
+    if (confirm('Mark this item as returned?')) {
+        // Implement mark as returned functionality
+        console.log('Mark as returned:', itemId);
+        alert('Mark as returned functionality to be implemented');
+    }
+}
+
+function deleteItem(itemId) {
+    if (confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+        fetch(`/admin/items/${itemId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '/admin/items';
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting item');
+        });
+    }
+}
+
+function markAsClaimPending(itemId) {
+    if (confirm('Mark this item as claim pending?')) {
+        // Implement mark as claim pending functionality
+        console.log('Mark as claim pending:', itemId);
+        alert('Mark as claim pending functionality to be implemented');
+    }
+}
+</script>
+
+<style>
+.admin-item-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.detail-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.detail-card h2, .detail-card h3 {
+    margin-top: 0;
+    color: #333;
+    border-bottom: 2px solid #f8f9fa;
+    padding-bottom: 0.5rem;
+}
+
+.item-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.detail-item p {
+    margin: 0.25rem 0;
+}
+
+.user-info, .contact-info, .system-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.admin-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-success { background: #28a745; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; }
+.btn-danger { background: #dc3545; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; }
+.btn-warning { background: #ffc107; color: #212529; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; }
+.btn-back { background: #6c757d; color: white; padding: 0.5rem 1rem; border-radius: 5px; text-decoration: none; }
+
+.claims-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.claim-item {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 5px;
+    border-left: 4px solid #007bff;
+}
+
+.claim-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.role-student { background: #e3f2fd; color: #1565c0; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.8rem; }
+.role-admin { background: #fff3e0; color: #ef6c00; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.8rem; }
+
+.status-available { color: #28a745; }
+.status-claim_pending { color: #ffc107; }
+.status-returned { color: #6c757d; }
+</style>
+
+<%- include('../partials/footer') %>

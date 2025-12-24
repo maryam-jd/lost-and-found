@@ -1,0 +1,634 @@
+<!-- Admin Navigation -->
+<nav class="admin-nav">
+    <!-- Desktop Horizontal Navigation -->
+    <div class="admin-nav-desktop">
+        <div class="nav-brand">
+            <div class="brand-icon"></div>
+            <span class="brand-text">Admin Panel</span>
+        </div>
+        
+        <div class="nav-links">
+            <a href="/admin" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Dashboard</span>
+            </a>
+            <a href="/admin/items" class="nav-link <%= currentPage === 'items' ? 'active' : '' %>">
+                <span class="nav-icon">📦</span>
+                <span class="nav-text">Manage Items</span>
+            </a>
+            <a href="/admin/users" class="nav-link <%= currentPage === 'users' ? 'active' : '' %>">
+                <span class="nav-icon">👥</span>
+                <span class="nav-text">Manage Users</span>
+            </a>
+            <a href="/admin/claims" class="nav-link <%= currentPage === 'claims' ? 'active' : '' %>">
+                <span class="nav-icon">📋</span>
+                <span class="nav-text">Manage Claims</span>
+            </a>
+            <a href="/admin/categories" class="nav-link <%= currentPage === 'categories' ? 'active' : '' %>">
+                <span class="nav-icon">📚</span>
+                <span class="nav-text">Categories</span>
+            </a>
+        </div>
+
+        <!-- Profile Dropdown -->
+        <div class="nav-profile">
+            <button class="profile-toggle" id="profileToggle">
+                <div class="profile-avatar">
+                    <span class="avatar-icon">👤</span>
+                </div>
+                <span class="profile-name"><%= user.name %></span>
+                <span class="dropdown-arrow">▼</span>
+            </button>
+            
+            <div class="profile-dropdown" id="profileDropdown">
+                <div class="dropdown-header">
+                    <div class="user-info">
+                        <div class="user-avatar">👤</div>
+                        <div class="user-details">
+                            <strong><%= user.name %></strong>
+                            <span><%= user.email %></span>
+                            <small class="user-role">Administrator</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dropdown-divider"></div>
+                
+                
+                <a href="/admin" class="dropdown-item">
+                    <span class="item-icon">👤</span>
+                    <span class="item-text">My Profile</span>
+                </a>
+                
+                <div class="dropdown-divider"></div>
+                
+                <form action="/auth/logout" method="POST" class="logout-form">
+                    <button type="submit" class="dropdown-item logout-item">
+                        <span class="item-icon">🚪</span>
+                        <span class="item-text">Logout</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <div class="admin-nav-mobile">
+        <div class="mobile-nav-header">
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            
+            <div class="mobile-brand">
+                <div class="brand-icon">⚙️</div>
+                <span class="brand-text">Admin</span>
+            </div>
+            
+            <button class="mobile-profile-toggle" id="mobileProfileToggle">
+                <div class="profile-avatar">
+                    <span class="avatar-icon">👤</span>
+                </div>
+            </button>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-nav-menu" id="mobileNavMenu">
+            <div class="mobile-user-info">
+                <div class="user-avatar">👤</div>
+                <div class="user-details">
+                    <strong><%= user.name %></strong>
+                    <span><%= user.email %></span>
+                    <small class="user-role">Administrator</small>
+                </div>
+            </div>
+            
+            <div class="mobile-nav-links">
+                <a href="/admin" class="mobile-nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a href="/admin/items" class="mobile-nav-link <%= currentPage === 'items' ? 'active' : '' %>">
+                    <span class="nav-icon">📦</span>
+                    <span class="nav-text">Manage Items</span>
+                </a>
+                <a href="/admin/users" class="mobile-nav-link <%= currentPage === 'users' ? 'active' : '' %>">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Manage Users</span>
+                </a>
+                <a href="/admin/claims" class="mobile-nav-link <%= currentPage === 'claims' ? 'active' : '' %>">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-text">Manage Claims</span>
+                </a>
+                <a href="/admin/categories" class="mobile-nav-link <%= currentPage === 'categories' ? 'active' : '' %>">
+                    <span class="nav-icon">📚</span>
+                    <span class="nav-text">Categories</span>
+                </a>
+            </div>
+            
+            <div class="mobile-nav-footer">
+                <!-- "My Profile" goes to user dashboard -->
+                <a href="/admin" class="mobile-nav-link">
+                    <span class="nav-icon">👤</span>
+                    <span class="nav-text">My Profile</span>
+                </a>
+                <form action="/auth/logout" method="POST" class="logout-form">
+                    <button type="submit" class="mobile-nav-link logout-link">
+                        <span class="nav-icon">🚪</span>
+                        <span class="nav-text">Logout</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Backdrop for mobile menu -->
+<div class="mobile-backdrop" id="mobileBackdrop"></div>
+
+<style>
+/* ===== ADMIN NAVIGATION STYLES ===== */
+.admin-nav {
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Desktop Navigation */
+.admin-nav-desktop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    height: 70px;
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 1.2rem;
+}
+
+.brand-icon {
+    font-size: 1.5rem;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    text-decoration: none;
+    color: #64748b;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-link:hover {
+    color: #3730a3;
+    background: #f8fafc;
+}
+
+.nav-link.active {
+    color: #3730a3;
+    background: #eef2ff;
+    font-weight: 600;
+}
+
+.nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 1.25rem;
+    right: 1.25rem;
+    height: 2px;
+    background: #3730a3;
+    border-radius: 2px;
+}
+
+.nav-icon {
+    font-size: 1.1rem;
+}
+
+/* Profile Dropdown */
+.nav-profile {
+    position: relative;
+}
+
+.profile-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    background: none;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.profile-toggle:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.profile-avatar {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #4f46e5, #3730a3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.avatar-icon {
+    font-size: 0.9rem;
+}
+
+.profile-name {
+    font-weight: 500;
+    color: #374151;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dropdown-arrow {
+    font-size: 0.7rem;
+    color: #64748b;
+    transition: transform 0.3s ease;
+}
+
+.profile-toggle:hover .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    min-width: 280px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1001;
+}
+
+.profile-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(5px);
+}
+
+.dropdown-header {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-avatar {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #4f46e5, #3730a3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.user-details {
+    flex: 1;
+}
+
+.user-details strong {
+    display: block;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+}
+
+.user-details span {
+    display: block;
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.user-role {
+    background: #3730a3;
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 0.5rem 0;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    color: #374151;
+    transition: all 0.3s ease;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.dropdown-item:hover {
+    background: #f8fafc;
+    color: #3730a3;
+}
+
+.dropdown-item.logout-item {
+    color: #dc2626;
+}
+
+.dropdown-item.logout-item:hover {
+    background: #fef2f2;
+}
+
+.item-icon {
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+/* Mobile Navigation */
+.admin-nav-mobile {
+    display: none;
+}
+
+.mobile-nav-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.mobile-menu-toggle {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+}
+
+.mobile-menu-toggle span {
+    width: 20px;
+    height: 2px;
+    background: #374151;
+    transition: all 0.3s ease;
+    border-radius: 2px;
+}
+
+.mobile-menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(6px, 6px);
+}
+
+.mobile-menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(6px, -6px);
+}
+
+.mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.mobile-profile-toggle {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+}
+
+.mobile-nav-menu {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 280px;
+    height: 100vh;
+    background: white;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    transition: left 0.3s ease;
+    z-index: 1002;
+    overflow-y: auto;
+}
+
+.mobile-nav-menu.active {
+    left: 0;
+}
+
+.mobile-user-info {
+    padding: 2rem 1.5rem 1rem;
+    background: linear-gradient(135deg, #4f46e5, #3730a3);
+    color: white;
+}
+
+.mobile-nav-links {
+    padding: 1rem 0;
+}
+
+.mobile-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    text-decoration: none;
+    color: #374151;
+    transition: all 0.3s ease;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.mobile-nav-link:hover,
+.mobile-nav-link.active {
+    background: #f8fafc;
+    color: #3730a3;
+}
+
+.mobile-nav-link.logout-link {
+    color: #dc2626;
+}
+
+.mobile-nav-link.logout-link:hover {
+    background: #fef2f2;
+}
+
+.mobile-nav-footer {
+    border-top: 1px solid #e2e8f0;
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+.mobile-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1001;
+    display: none;
+}
+
+.mobile-backdrop.active {
+    display: block;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .admin-nav-desktop {
+        padding: 0 1rem;
+    }
+    
+    .nav-link {
+        padding: 0.75rem 1rem;
+    }
+    
+    .profile-name {
+        max-width: 120px;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-nav-desktop {
+        display: none;
+    }
+    
+    .admin-nav-mobile {
+        display: block;
+    }
+}
+
+/* Logout Form Styles */
+.logout-form {
+    margin: 0;
+}
+
+.logout-form .dropdown-item,
+.logout-form .mobile-nav-link {
+    margin: 0;
+}
+</style>
+
+<script>
+// Profile Dropdown Toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const profileToggle = document.getElementById('profileToggle');
+    const profileDropdown = document.getElementById('profileDropdown');
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const mobileNavMenu = document.getElementById('mobileNavMenu');
+    const mobileBackdrop = document.getElementById('mobileBackdrop');
+    const mobileProfileToggle = document.getElementById('mobileProfileToggle');
+
+    // Desktop Profile Dropdown
+    if (profileToggle && profileDropdown) {
+        profileToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('show');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function() {
+            profileDropdown.classList.remove('show');
+        });
+
+        // Prevent dropdown from closing when clicking inside
+        profileDropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+
+    // Mobile Menu Toggle
+    if (mobileMenuToggle && mobileNavMenu && mobileBackdrop) {
+        mobileMenuToggle.addEventListener('click', function() {
+            mobileMenuToggle.classList.toggle('active');
+            mobileNavMenu.classList.toggle('active');
+            mobileBackdrop.classList.toggle('active');
+        });
+
+        mobileBackdrop.addEventListener('click', function() {
+            mobileMenuToggle.classList.remove('active');
+            mobileNavMenu.classList.remove('active');
+            mobileBackdrop.classList.remove('active');
+        });
+    }
+
+    // Mobile Profile Toggle (for future use if needed)
+    if (mobileProfileToggle) {
+        mobileProfileToggle.addEventListener('click', function() {
+            // You can add mobile-specific profile actions here
+            // For now, it just opens the menu which includes profile info
+            mobileMenuToggle.classList.add('active');
+            mobileNavMenu.classList.add('active');
+            mobileBackdrop.classList.add('active');
+        });
+    }
+
+    // Close mobile menu when clicking on links
+    const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+    mobileLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            mobileMenuToggle.classList.remove('active');
+            mobileNavMenu.classList.remove('active');
+            mobileBackdrop.classList.remove('active');
+        });
+    });
+});
+</script>

@@ -1,0 +1,12 @@
+<%- include('partials/header', { title: title, user: user }) %>
+
+<div class="error-container">
+    <div class="error-content">
+        <h1>Oops!</h1>
+        <h2><%= message %></h2>
+        <p>Something went wrong.</p>
+        <a href="/" class="btn btn-primary">Go Home</a>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

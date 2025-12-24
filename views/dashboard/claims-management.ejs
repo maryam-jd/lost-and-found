@@ -1,0 +1,229 @@
+<%- include('../partials/header', { title: title, user: user }) %>
+<%- include('../partials/dashboard-nav', { activeTab: 'my-items', user: user }) %>
+
+<div class="dashboard-content">
+    <div class="welcome-container">
+        <h1 class="welcome-title">Manage Claims 🛡️</h1>
+        <p class="welcome-subtitle">Review and manage claims on your reported items</p>
+    </div>
+
+    <% if (claims && claims.length > 0) { %>
+        <div class="claims-grid">
+            <% claims.forEach(claim => { %>
+                <div class="claim-card <%= claim.status %>">
+                    <div class="claim-header">
+                        <h3><%= claim.item.name %></h3>
+                        <span class="claim-status <%= claim.status %>">
+                            <%= claim.status.charAt(0).toUpperCase() + claim.status.slice(1) %>
+                        </span>
+                    </div>
+                    
+                    <div class="claim-details">
+                        <div class="detail-row">
+                            <strong>Claimant:</strong>
+                            <span><%= claim.claimant.name %> (<%= claim.claimant.email %>)</span>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <strong>Claim Message:</strong>
+                            <p class="claim-message"><%= claim.message %></p>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <strong>Proof Description:</strong>
+                            <p class="proof-description"><%= claim.proofDescription %></p>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <strong>Contact Info:</strong>
+                            <span><%= claim.contactEmail %> <%= claim.contactPhone ? `| ${claim.contactPhone}` : '' %></span>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <strong>Submitted:</strong>
+                            <span><%= claim.createdAt.toLocaleDateString() %> at <%= claim.createdAt.toLocaleTimeString() %></span>
+                        </div>
+                        
+                        <% if (claim.approvedAt) { %>
+                        <div class="detail-row">
+                            <strong>Approved:</strong>
+                            <span><%= claim.approvedAt.toLocaleDateString() %></span>
+                        </div>
+                        <% } %>
+                    </div>
+
+                    <% if (claim.status === 'pending') { %>
+                    <div class="claim-actions">
+                        <form action="/claims/<%= claim._id %>/approve" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-success" 
+                                    onclick="return confirm('Are you sure you want to approve this claim?')">
+                                ✅ Approve Claim
+                            </button>
+                        </form>
+                        
+                        <form action="/claims/<%= claim._id %>/reject" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-danger"
+                                    onclick="return confirm('Are you sure you want to reject this claim?')">
+                                ❌ Reject Claim
+                            </button>
+                        </form>
+                        
+                        <button type="button" class="btn btn-primary" 
+                                onclick="showContactForm('<%= claim._id %>')">
+                            📧 Contact Claimant
+                        </button>
+                    </div>
+
+                    <div id="contactForm-<%= claim._id %>" class="contact-form" style="display: none; margin-top: 1rem;">
+                        <form action="/claims/<%= claim._id %>/contact" method="POST">
+                            <div class="form-group">
+                                <label for="message-<%= claim._id %>">Message to Claimant:</label>
+                                <textarea name="message" id="message-<%= claim._id %>" required 
+                                          placeholder="Write your message to the claimant. Include how they can provide additional proof or coordinate item return..."
+                                          rows="4"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" 
+                                        onclick="hideContactForm('<%= claim._id %>')">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Send Email</button>
+                            </div>
+                        </form>
+                    </div>
+                    <% } %>
+                </div>
+            <% }) %>
+        </div>
+    <% } else { %>
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <h3>No claims to manage</h3>
+            <p>When someone claims your items, they will appear here for review.</p>
+            <a href="/items" class="btn btn-primary">Browse Items</a>
+        </div>
+    <% } %>
+</div>
+
+<style>
+.claims-grid {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.claim-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-left: 4px solid #6b7280;
+}
+
+.claim-card.pending {
+    border-left-color: #f59e0b;
+}
+
+.claim-card.approved {
+    border-left-color: #10b981;
+}
+
+.claim-card.rejected {
+    border-left-color: #ef4444;
+}
+
+.claim-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.claim-header h3 {
+    margin: 0;
+    color: #374151;
+}
+
+.claim-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.claim-status.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.claim-status.approved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.claim-status.rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.detail-row {
+    display: flex;
+    margin-bottom: 0.75rem;
+    gap: 1rem;
+}
+
+.detail-row strong {
+    min-width: 120px;
+    color: #374151;
+}
+
+.claim-message, .proof-description {
+    background: #f8fafc;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin: 0.5rem 0;
+    font-style: italic;
+}
+
+.claim-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.contact-form {
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+}
+
+.btn-success {
+    background: #10b981;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #059669;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+</style>
+
+<script>
+function showContactForm(claimId) {
+    document.getElementById(`contactForm-${claimId}`).style.display = 'block';
+}
+
+function hideContactForm(claimId) {
+    document.getElementById(`contactForm-${claimId}`).style.display = 'none';
+}
+</script>
+
+<%- include('../partials/footer') %>

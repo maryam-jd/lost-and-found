@@ -1,0 +1,94 @@
+<%- include('partials/header', { title: title, user: user }) %>
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="hero-content">
+    <h1>Welcome to <span class="brand-highlight">CUI Lost & Found Portal</span></h1>
+    <p class="hero-description">
+      Reconnect with your lost belongings through our secure campus platform. 
+      Simple, efficient, and trusted by the COMSATS community.
+    </p>
+
+    <div class="hero-buttons">
+      <% if (!user) { %>
+        <a href="/auth/login" class="btn-hero primary-btn">Login to Account</a>
+        <a href="/auth/register" class="btn-hero secondary-btn">Create New Account</a>
+      <% } else { %>
+        <a href="/dashboard" class="btn-hero primary-btn">Go to Dashboard</a>
+        <a href="/items" class="btn-hero secondary-btn">Browse Items</a>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Section with Real Data -->
+<section class="stats-section">
+  <div class="container">
+    <h2 class="stats-title">Our Impact at COMSATS</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <h3><%= stats.totalItems %></h3>
+        <p>Total Items Reported</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <h3><%= stats.recoveredItems %></h3>
+        <p>Items Recovered</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <h3><%= stats.activeUsers %></h3>
+        <p>Active Users</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🎯</div>
+        <h3><%= stats.successRate %>%</h3>
+        <p>Success Rate</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⚡</div>
+        <h3><%= stats.avgResponse %>h</h3>
+        <p>Avg. Response Time</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works-section">
+  <div class="container">
+    <h2 class="section-title">How It Works</h2>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <div class="step-icon">📝</div>
+        <h3>Report</h3>
+        <p>Report your lost or found item with details and photos</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <div class="step-icon">🔍</div>
+        <h3>Match</h3>
+        <p>Our system helps match lost and found items automatically</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <div class="step-icon">💬</div>
+        <h3>Connect</h3>
+        <p>Get connected with the item owner or finder securely</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">4</div>
+        <div class="step-icon">🎉</div>
+        <h3>Reunite</h3>
+        <p>Successfully reunite items with their rightful owners</p>
+      </div>
+    </div>
+    <div class="text-center">
+      <a href="/how-it-works" class="btn-learn-more">Learn More About the Process</a>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

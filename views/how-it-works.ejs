@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How It Works - Lost & Found Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+        
+        .how-it-works-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        
+        .page-header h1 {
+            font-size: 3rem;
+            color: #1e293b;
+            margin-bottom: 1rem;
+        }
+        
+        .page-header p {
+            font-size: 1.2rem;
+            color: #64748b;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .steps-section {
+            background: white;
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 3rem;
+        }
+        
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .step-card {
+            text-align: center;
+            padding: 2rem;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .step-card:hover {
+            transform: translateY(-5px);
+            border-color: #4f46e5;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .step-number {
+            background: #4f46e5;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto 1rem;
+        }
+        
+        .step-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .step-card h3 {
+            color: #1e293b;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .step-card p {
+            color: #64748b;
+            line-height: 1.6;
+        }
+        
+        .back-home {
+            text-align: center;
+            margin-top: 3rem;
+        }
+        
+        .btn-home {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: #4f46e5;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-home:hover {
+            background: #3730a3;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="how-it-works-container">
+        <div class="page-header">
+            <h1>How It Works</h1>
+            <p>Simple steps to report, find, and reunite lost items with their owners</p>
+        </div>
+
+        <div class="steps-section">
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-icon">📝</div>
+                    <h3>Report</h3>
+                    <p>Report your lost or found item with detailed description, photos, and location information.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-icon">🔍</div>
+                    <h3>Match</h3>
+                    <p>Our intelligent system automatically matches lost and found items based on descriptions and categories.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-icon">💬</div>
+                    <h3>Connect</h3>
+                    <p>Get securely connected with the item owner or finder through our protected messaging system.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <div class="step-icon">🎉</div>
+                    <h3>Reunite</h3>
+                    <p>Successfully reunite items with their rightful owners and help build a trustworthy community.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="back-home">
+            <a href="/" class="btn-home">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>

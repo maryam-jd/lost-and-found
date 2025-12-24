@@ -1,0 +1,57 @@
+<%- include('../partials/header', { title: title, user: user }) %>
+
+<style>
+    .navbar {
+        display: none;
+    }
+    
+    body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+</style>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <div class="logo-icon">🔍</div>
+            <h1>CUI Lost & Found</h1>
+        </div>
+        
+        <div class="auth-header">
+            <% if (success) { %>
+                <div class="verification-success">
+                    <div class="success-icon">✅</div>
+                    <h2>Email Verified Successfully!</h2>
+                </div>
+            <% } else { %>
+                <div class="verification-error">
+                    <div class="error-icon">❌</div>
+                    <h2>Verification Failed</h2>
+                </div>
+            <% } %>
+        </div>
+        
+        <div class="verification-message">
+            <p><%= message %></p>
+            
+            <% if (success) { %>
+                <div class="text-center">
+                    <a href="/auth/login" class="btn-auth-primary" style="text-decoration: none; display: inline-block;">
+                        🔑 Proceed to Login
+                    </a>
+                </div>
+            <% } else { %>
+                <div class="text-center">
+                    <a href="/auth/register" class="btn-auth-primary" style="text-decoration: none; display: inline-block;">
+                        📝 Register Again
+                    </a>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

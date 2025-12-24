@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title + ' - Lost & Found Portal' : 'Lost & Found Portal' %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Mobile menu functionality */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .nav-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column;
+                padding: 20px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            }
+            
+            .nav-menu.active {
+                display: flex;
+            }
+            
+            .nav-link {
+                color: #333;
+                padding: 12px 0;
+                border-bottom: 1px solid #eee;
+            }
+        }
+
+        /* Global alert improvements */
+        .global-alert {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            min-width: 300px;
+            text-align: center;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { top: -50px; opacity: 0; }
+            to { top: 70px; opacity: 1; }
+        }
+
+        .nav-auth {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+    </style>
+</head>
+<body>
+    <% if (typeof hideNav === 'undefined' || !hideNav) { %>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <% if (!user) { %>
+                    <a href="/">🔍 Lost & Found Portal</a>
+                <% } else { %>
+                    <a href="/dashboard" style="visibility: hidden;">🔍</a>
+                <% } %>
+            </div>
+            
+            <!-- Mobile menu button -->
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+                ☰
+            </button>
+            
+            <div class="nav-menu" id="navMenu">
+                <% if (!user) { %>
+                    <a href="/" class="nav-link">🏠 Home</a>
+                    <a href="/items" class="nav-link">📦 Browse Items</a>
+                    <a href="/how-it-works" class="nav-link">❓ How It Works</a>
+                    <div class="nav-auth">
+                        <a href="/auth/login" class="nav-link">Login</a>
+                        <a href="/auth/register" class="nav-link btn-primary">Register</a>
+                    </div>
+                <% } else { %>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+    <% } %>
+
+    <!-- Success/Error Message Display -->
+    <% if (typeof successMessage !== 'undefined' && successMessage) { %>
+        <div class="global-alert alert alert-success">
+            ✅ <%= successMessage %>
+            <button onclick="this.parentElement.style.display='none'" style="margin-left: 15px; background: none; border: none; cursor: pointer;">✕</button>
+        </div>
+    <% } %>
+    
+    <% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+        <div class="global-alert alert alert-error">
+            ❌ <%= errorMessage %>
+            <button onclick="this.parentElement.style.display='none'" style="margin-left: 15px; background: none; border: none; cursor: pointer;">✕</button>
+        </div>
+    <% } %>
+
+    <main>
+
+    <script>
+        // Mobile menu functionality
+        function toggleMobileMenu() {
+            const navMenu = document.getElementById('navMenu');
+            navMenu.classList.toggle('active');
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navMenu = document.getElementById('navMenu');
+            const mobileBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (navMenu && mobileBtn) {
+                if (!navMenu.contains(event.target) && !mobileBtn.contains(event.target)) {
+                    navMenu.classList.remove('active');
+                }
+            }
+        });
+
+        // Auto-hide alerts after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.global-alert');
+            alerts.forEach(alert => {
+                if (alert) alert.style.display = 'none';
+            });
+        }, 5000);
+
+        document.addEventListener('click', function(event) {
+            if (event.target.textContent === '✕') {
+                event.target.parentElement.style.display = 'none';
+            }
+        });
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.location.pathname === '/') {
+            const navbar = document.querySelector('.navbar');
+            if (navbar) {
+                navbar.style.display = 'none';
+            }
+        }
+    });
+    </script>

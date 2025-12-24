@@ -1,0 +1,653 @@
+<%- include('../partials/header', { 
+    title: 'Manage Items', 
+    user: user,
+    hideNav: true 
+}) %>
+
+<%- include('../partials/admin-nav', { 
+    currentPage: 'items' 
+}) %>
+
+<div class="container">
+    <div class="admin-header">
+        <h1>📦 Manage Items</h1>
+        <p>View and manage all lost and found items</p>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="admin-filters">
+        <div class="search-box">
+            <input type="text" id="searchItems" placeholder="Search items by name, description, location..." class="search-input">
+            <button onclick="performSearch()" class="btn-search">🔍 Search</button>
+        </div>
+        <div class="filter-group">
+            <select id="typeFilter" class="filter-select">
+                <option value="all">All Types</option>
+                <option value="lost">Lost Items</option>
+                <option value="found">Found Items</option>
+            </select>
+            <select id="statusFilter" class="filter-select">
+                <option value="all">All Status</option>
+                <option value="available">Available</option>
+                <option value="claim_pending">Claim Pending</option>
+                <option value="returned">Returned</option>
+            </select>
+            <select id="categoryFilter" class="filter-select">
+                <option value="all">All Categories</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Books">Books</option>
+                <option value="ID Cards">ID Cards</option>
+                <option value="Bags">Bags</option>
+                <option value="Clothing">Clothing</option>
+                <option value="Keys">Keys</option>
+                <option value="Other">Other</option>
+            </select>
+            <button onclick="clearFilters()" class="btn-secondary">Clear Filters</button>
+        </div>
+    </div>
+
+    <!-- Items Table -->
+    <div class="table-container">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                    <th>Item Name</th>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Location</th>
+                    <th>Date</th>
+                    <th>Owner</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="itemsTableBody">
+                <% if (items && items.length > 0) { %>
+                    <% items.forEach(item => { %>
+                    <tr data-item-id="<%= item._id %>" 
+                        data-type="<%= item.type %>" 
+                        data-status="<%= item.status %>" 
+                        data-category="<%= item.category %>">
+                        <td><input type="checkbox" class="item-checkbox" value="<%= item._id %>"></td>
+                        <td>
+                            <strong><%= item.name %></strong>
+                            <% if (item.description) { %>
+                                <br><small class="item-description"><%= item.description.substring(0, 50) %>...</small>
+                            <% } %>
+                        </td>
+                        <td>
+                            <span class="badge badge-<%= item.type %>">
+                                <%= item.type === 'lost' ? '🔍 Lost' : '✅ Found' %>
+                            </span>
+                        </td>
+                        <td><%= item.category %></td>
+                        <td>
+                            <span class="status-badge status-<%= item.status %>">
+                                <%= item.status.replace('_', ' ') %>
+                            </span>
+                        </td>
+                        <td><%= item.location %></td>
+                        <td><%= new Date(item.date).toLocaleDateString() %></td>
+                        <td>
+                            <%= item.reportedBy ? item.reportedBy.name : 'Unknown' %>
+                            <% if (item.reportedBy && item.reportedBy.email) { %>
+                                <br><small><%= item.reportedBy.email %></small>
+                            <% } %>
+                        </td>
+                        <td class="action-buttons">
+                            <a href="/admin/items/<%= item._id %>" class="btn-view">👁️ View</a>
+                            <button onclick="deleteItem('<%= item._id %>', '<%= item.name %>')" class="btn-delete">🗑️ Delete</button>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="9" class="no-data">No items found</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="bulk-actions" id="bulkActions" style="display: none;">
+        <span id="selectedCount">0 items selected</span>
+        <button onclick="deleteSelectedItems()" class="btn-danger">🗑️ Delete Selected</button>
+        <button onclick="clearSelection()" class="btn-secondary">Clear Selection</button>
+    </div>
+
+    <!-- Export Section -->
+    <div class="export-section">
+        <h3>Export Data</h3>
+        <div class="export-actions">
+            <button onclick="exportToExcel()" class="btn-export">📊 Export to Excel</button>
+            <button onclick="exportToCSV()" class="btn-export">📄 Export to CSV</button>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading items...</p>
+    </div>
+</div>
+
+<script>
+let currentFilters = {
+    search: '',
+    type: 'all',
+    status: 'all',
+    category: 'all'
+};
+
+// Initialize event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Search input with debounce
+    let searchTimeout;
+    document.getElementById('searchItems').addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentFilters.search = e.target.value;
+            performSearch();
+        }, 500);
+    });
+
+    // Filter change listeners
+    document.getElementById('typeFilter').addEventListener('change', function(e) {
+        currentFilters.type = e.target.value;
+        performSearch();
+    });
+
+    document.getElementById('statusFilter').addEventListener('change', function(e) {
+        currentFilters.status = e.target.value;
+        performSearch();
+    });
+
+    document.getElementById('categoryFilter').addEventListener('change', function(e) {
+        currentFilters.category = e.target.value;
+        performSearch();
+    });
+
+    // Update bulk actions when selection changes
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('item-checkbox')) {
+            updateBulkActions();
+        }
+    });
+});
+
+function performSearch() {
+    const searchTerm = document.getElementById('searchItems').value;
+    const typeFilter = document.getElementById('typeFilter').value;
+    const statusFilter = document.getElementById('statusFilter').value;
+    const categoryFilter = document.getElementById('categoryFilter').value;
+
+    showLoading(true);
+
+    // Client-side filtering for better performance
+    const rows = document.querySelectorAll('#itemsTableBody tr');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+        const itemId = row.getAttribute('data-item-id');
+        const itemType = row.getAttribute('data-type');
+        const itemStatus = row.getAttribute('data-status');
+        const itemCategory = row.getAttribute('data-category');
+        const itemName = row.querySelector('strong').textContent.toLowerCase();
+        const itemDescription = row.querySelector('.item-description')?.textContent.toLowerCase() || '';
+        const itemLocation = row.cells[5].textContent.toLowerCase();
+
+        const matchesSearch = !searchTerm || 
+            itemName.includes(searchTerm.toLowerCase()) ||
+            itemDescription.includes(searchTerm.toLowerCase()) ||
+            itemLocation.includes(searchTerm.toLowerCase());
+
+        const matchesType = typeFilter === 'all' || itemType === typeFilter;
+        const matchesStatus = statusFilter === 'all' || itemStatus === statusFilter;
+        const matchesCategory = categoryFilter === 'all' || itemCategory === categoryFilter;
+
+        if (matchesSearch && matchesType && matchesStatus && matchesCategory) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Update no data message
+    const noDataRow = document.querySelector('.no-data');
+    if (noDataRow) {
+        noDataRow.style.display = visibleCount === 0 ? '' : 'none';
+    }
+
+    showLoading(false);
+}
+
+function showLoading(show) {
+    document.getElementById('loadingSpinner').style.display = show ? 'flex' : 'none';
+}
+
+function toggleSelectAll() {
+    const checkboxes = document.querySelectorAll('.item-checkbox');
+    const selectAll = document.getElementById('selectAll');
+    const visibleRows = document.querySelectorAll('#itemsTableBody tr:not([style*="display: none"])');
+    
+    visibleRows.forEach(row => {
+        const checkbox = row.querySelector('.item-checkbox');
+        if (checkbox) {
+            checkbox.checked = selectAll.checked;
+        }
+    });
+    
+    updateBulkActions();
+}
+
+function updateBulkActions() {
+    const selectedItems = document.querySelectorAll('.item-checkbox:checked');
+    const bulkActions = document.getElementById('bulkActions');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    if (selectedItems.length > 0) {
+        bulkActions.style.display = 'block';
+        selectedCount.textContent = `${selectedItems.length} item${selectedItems.length > 1 ? 's' : ''} selected`;
+    } else {
+        bulkActions.style.display = 'none';
+    }
+}
+
+function clearSelection() {
+    const checkboxes = document.querySelectorAll('.item-checkbox');
+    checkboxes.forEach(checkbox => checkbox.checked = false);
+    document.getElementById('selectAll').checked = false;
+    updateBulkActions();
+}
+
+function deleteItem(itemId, itemName) {
+    if (confirm(`Are you sure you want to delete "${itemName}"? This will also delete all associated claims.`)) {
+        showLoading(true);
+        
+        fetch(`/admin/items/${itemId}`, { 
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Remove item from table
+                const row = document.querySelector(`tr[data-item-id="${itemId}"]`);
+                if (row) row.remove();
+                
+                // Show success message
+                showNotification('Item deleted successfully!', 'success');
+                
+                // Check if table is empty
+                const remainingRows = document.querySelectorAll('#itemsTableBody tr:not([style*="display: none"])');
+                if (remainingRows.length === 0) {
+                    const tbody = document.getElementById('itemsTableBody');
+                    tbody.innerHTML = '<tr><td colspan="9" class="no-data">No items found</td></tr>';
+                }
+            } else {
+                throw new Error(data.message || 'Unknown error occurred');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting item: ' + error.message);
+        })
+        .finally(() => {
+            showLoading(false);
+        });
+    }
+}
+
+function deleteSelectedItems() {
+    const selectedItems = Array.from(document.querySelectorAll('.item-checkbox:checked'))
+        .map(checkbox => checkbox.value);
+    
+    if (selectedItems.length === 0) {
+        alert('Please select items to delete');
+        return;
+    }
+    
+    if (confirm(`Are you sure you want to delete ${selectedItems.length} items? This action cannot be undone.`)) {
+        showLoading(true);
+        
+        fetch('/admin/items/bulk-delete', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ itemIds: selectedItems })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Remove deleted items from table
+                selectedItems.forEach(itemId => {
+                    const row = document.querySelector(`tr[data-item-id="${itemId}"]`);
+                    if (row) row.remove();
+                });
+                
+                // Show success message
+                showNotification(`${data.deletedCount || selectedItems.length} items deleted successfully!`, 'success');
+                
+                // Update item count if available
+                if (data.deletedCount && data.deletedCount !== selectedItems.length) {
+                    console.log(`Deleted ${data.deletedCount} out of ${selectedItems.length} selected items`);
+                }
+                
+                // Clear selection
+                clearSelection();
+                
+                // Check if table is empty
+                const remainingRows = document.querySelectorAll('#itemsTableBody tr:not([style*="display: none"])');
+                if (remainingRows.length === 0) {
+                    const tbody = document.getElementById('itemsTableBody');
+                    tbody.innerHTML = '<tr><td colspan="9" class="no-data">No items found</td></tr>';
+                }
+            } else {
+                throw new Error(data.message || 'Unknown error occurred');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting items: ' + error.message);
+        })
+        .finally(() => {
+            showLoading(false);
+        });
+    }
+}
+function exportToExcel() {
+    showLoading(true);
+    
+    fetch('/admin/export/items-excel')
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `items-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            showNotification('Excel export downloaded successfully!', 'success');
+            trackAdminAction('export_excel', null, 'Exported items to Excel');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error exporting to Excel');
+        })
+        .finally(() => {
+            showLoading(false);
+        });
+}
+
+function exportToCSV() {
+    showLoading(true);
+    
+    fetch('/admin/export/items-csv')
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `items-export-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            showNotification('CSV export downloaded successfully!', 'success');
+            trackAdminAction('export_csv', null, 'Exported items to CSV');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error exporting to CSV');
+        })
+        .finally(() => {
+            showLoading(false);
+        });
+}
+
+function clearFilters() {
+    document.getElementById('searchItems').value = '';
+    document.getElementById('typeFilter').value = 'all';
+    document.getElementById('statusFilter').value = 'all';
+    document.getElementById('categoryFilter').value = 'all';
+    
+    currentFilters = {
+        search: '',
+        type: 'all',
+        status: 'all',
+        category: 'all'
+    };
+    
+    performSearch();
+}
+
+function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    
+    // Add styles
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 5px;
+        color: white;
+        font-weight: 500;
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    if (type === 'success') {
+        notification.style.background = '#28a745';
+    } else if (type === 'error') {
+        notification.style.background = '#dc3545';
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+function trackAdminAction(action, targetItem, details) {
+    // Send action to server for tracking
+    fetch('/admin/track-action', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            action: action,
+            targetItem: targetItem,
+            details: details
+        })
+    }).catch(error => console.error('Error tracking action:', error));
+}
+</script>
+
+<style>
+.admin-filters {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.search-box {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.search-input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.btn-search {
+    background: #007bff;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.filter-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-select {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    min-width: 150px;
+}
+
+.badge-lost { background: #fff3cd; color: #856404; padding: 0.25rem 0.5rem; border-radius: 15px; }
+.badge-found { background: #d1ecf1; color: #0c5460; padding: 0.25rem 0.5rem; border-radius: 15px; }
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-available { background: #d4edda; color: #155724; }
+.status-claim_pending { background: #fff3cd; color: #856404; }
+.status-returned { background: #d1ecf1; color: #0c5460; }
+
+.bulk-actions {
+    background: #f8f9fa;
+    padding: 1rem 1.5rem;
+    border-radius: 5px;
+    margin: 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-left: 4px solid #007bff;
+}
+
+.export-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-top: 2rem;
+}
+
+.export-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.btn-export {
+    background: #28a745;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.loading-spinner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.item-description {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.btn-secondary { background: #6c757d; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; }
+.btn-danger { background: #dc3545; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; }
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-view, .btn-delete {
+    padding: 0.25rem 0.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    text-decoration: none;
+}
+
+.btn-view { background: #17a2b8; color: white; }
+.btn-delete { background: #dc3545; color: white; }
+
+.no-data {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 2rem;
+}
+</style>
+
+<%- include('../partials/footer') %>

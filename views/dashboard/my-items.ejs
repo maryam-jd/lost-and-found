@@ -1,0 +1,49 @@
+<%- include('../partials/header', { title: title, user: user }) %>
+<%- include('../partials/dashboard-nav', { activeTab: 'my-items', user: user }) %>
+
+<div class="dashboard-content">
+    <!-- Welcome Box -->
+    <div class="welcome-container">
+        <h1 class="welcome-title">Welcome back, <%= user.name %>! 👋</h1>
+        <p class="welcome-subtitle">Manage your reported items and track your claims</p>
+    </div>
+
+    <!-- User's Items Section -->
+    <div class="dashboard-section">
+        <div class="section-header">
+            <h2>📦 My Reported Items</h2>
+        </div>
+
+        <% if (userItems && userItems.length > 0) { %>
+            <div class="items-grid">
+                <% userItems.forEach(item => { %>
+                    <div class="item-card">
+                        <div class="item-type <%= item.type %>">
+                            <%= item.type.charAt(0).toUpperCase() + item.type.slice(1) %>
+                        </div>
+                        <h3><%= item.name %></h3>
+                        <p class="item-category"><%= item.category %></p>
+                        <p class="item-description"><%= item.description %></p>
+                        <p class="item-location">📍 <%= item.location %></p>
+                        <p class="item-date">📅 <%= item.date.toLocaleDateString() %></p>
+                        <div class="item-status <%= item.status %>">
+                            <span class="status-dot"></span>
+                            <%= item.status.replace('_', ' ') %>
+                        </div>
+                        <div class="item-actions">
+                            <a href="/items/<%= item._id %>" class="btn btn-small">View Details</a>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <h3>No items reported yet</h3>
+                <p>Start by reporting a lost or found item to help others in the community.</p>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

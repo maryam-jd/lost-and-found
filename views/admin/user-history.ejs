@@ -1,0 +1,295 @@
+<%- include('../partials/header', { title: 'User History - ' + userProfile.name, user: user }) %>
+
+<div class="container">
+    <div class="admin-header">
+        <div class="header-content">
+            <h1>👤 User History: <%= userProfile.name %></h1>
+            <a href="/admin/users" class="btn-back">← Back to Users</a>
+        </div>
+        <div class="user-quick-info">
+            <div class="quick-stats">
+                <span class="stat"><strong>Email:</strong> <%= userProfile.email %></span>
+                <span class="stat"><strong>Role:</strong> <span class="role-badge role-<%= userProfile.role %>"><%= userProfile.role %></span></span>
+                <span class="stat"><strong>Joined:</strong> <%= new Date(userProfile.createdAt).toLocaleDateString() %></span>
+                <span class="stat"><strong>University ID:</strong> <%= userProfile.universityId %></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Statistics -->
+    <div class="user-stats-cards">
+        <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-info">
+                <h3>Total Items</h3>
+                <p class="stat-number"><%= userStats.totalItems || 0 %></p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🔍</div>
+            <div class="stat-info">
+                <h3>Lost Items</h3>
+                <p class="stat-number"><%= userStats.lostItems || 0 %></p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+                <h3>Found Items</h3>
+                <p class="stat-number"><%= userStats.foundItems || 0 %></p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-info">
+                <h3>Claims Made</h3>
+                <p class="stat-number"><%= userStats.totalClaims || 0 %></p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-info">
+                <h3>Successful Claims</h3>
+                <p class="stat-number"><%= userStats.successfulClaims || 0 %></p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-info">
+                <h3>Success Rate</h3>
+                <p class="stat-number">
+                    <% if (userStats.totalClaims > 0) { %>
+                        <%= ((userStats.successfulClaims / userStats.totalClaims) * 100).toFixed(1) %>%
+                    <% } else { %>
+                        0%
+                    <% } %>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Items -->
+    <div class="history-section">
+        <h2>📦 Reported Items (<%= userItems.length %>)</h2>
+        <% if (userItems.length > 0) { %>
+            <div class="items-grid">
+                <% userItems.forEach(item => { %>
+                <div class="item-card">
+                    <div class="item-header">
+                        <h3><%= item.name %></h3>
+                        <span class="badge badge-<%= item.type %>">
+                            <%= item.type === 'lost' ? '🔍 Lost' : '✅ Found' %>
+                        </span>
+                    </div>
+                    <div class="item-details">
+                        <p><strong>Category:</strong> <%= item.category %></p>
+                        <p><strong>Status:</strong> <span class="status-badge status-<%= item.status %>"><%= item.status %></span></p>
+                        <p><strong>Location:</strong> <%= item.location %></p>
+                        <p><strong>Date:</strong> <%= new Date(item.date).toLocaleDateString() %></p>
+                        <p><strong>Reported:</strong> <%= new Date(item.createdAt).toLocaleDateString() %></p>
+                    </div>
+                    <div class="item-actions">
+                        <a href="/admin/items/<%= item._id %>" class="btn-view">View Details</a>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <p class="no-data">No items reported by this user</p>
+        <% } %>
+    </div>
+
+    <!-- User Claims -->
+    <div class="history-section">
+        <h2>📋 Claims Made (<%= userClaims.length %>)</h2>
+        <% if (userClaims.length > 0) { %>
+            <div class="claims-grid">
+                <% userClaims.forEach(claim => { %>
+                <div class="claim-card">
+                    <div class="claim-header">
+                        <h3><%= claim.item ? claim.item.name : 'Item Not Found' %></h3>
+                        <span class="badge badge-<%= claim.status %>">
+                            <%= claim.status %>
+                        </span>
+                    </div>
+                    <div class="claim-details">
+                        <p><strong>Message:</strong> <%= claim.message %></p>
+                        <p><strong>Item Owner:</strong> <%= claim.owner ? claim.owner.name : 'Unknown' %></p>
+                        <p><strong>Submitted:</strong> <%= new Date(claim.createdAt).toLocaleDateString() %></p>
+                        <% if (claim.approvedAt) { %>
+                            <p><strong>Approved:</strong> <%= new Date(claim.approvedAt).toLocaleDateString() %></p>
+                        <% } %>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <p class="no-data">No claims made by this user</p>
+        <% } %>
+    </div>
+
+    <!-- Claims on User's Items -->
+    <div class="history-section">
+        <h2>📥 Claims on User's Items (<%= claimsOnUserItems.length %>)</h2>
+        <% if (claimsOnUserItems.length > 0) { %>
+            <div class="claims-grid">
+                <% claimsOnUserItems.forEach(claim => { %>
+                <div class="claim-card">
+                    <div class="claim-header">
+                        <h3><%= claim.item ? claim.item.name : 'Item Not Found' %></h3>
+                        <span class="badge badge-<%= claim.status %>">
+                            <%= claim.status %>
+                        </span>
+                    </div>
+                    <div class="claim-details">
+                        <p><strong>Claimant:</strong> <%= claim.claimant ? claim.claimant.name : 'Unknown' %></p>
+                        <p><strong>Message:</strong> <%= claim.message %></p>
+                        <p><strong>Submitted:</strong> <%= new Date(claim.createdAt).toLocaleDateString() %></p>
+                        <p><strong>Status:</strong> <%= claim.status %></p>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <p class="no-data">No claims on this user's items</p>
+        <% } %>
+    </div>
+</div>
+
+<style>
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.user-quick-info {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.stat {
+    display: block;
+    padding: 0.5rem;
+}
+
+.user-stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    font-size: 2rem;
+}
+
+.stat-info h3 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.stat-number {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #007bff;
+    margin: 0;
+}
+
+.history-section {
+    margin-bottom: 3rem;
+}
+
+.history-section h2 {
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.items-grid, .claims-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.item-card, .claim-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-left: 4px solid #007bff;
+}
+
+.item-header, .claim-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.item-header h3, .claim-header h3 {
+    margin: 0;
+    color: #333;
+    flex: 1;
+}
+
+.item-details p, .claim-details p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.item-actions {
+    margin-top: 1rem;
+}
+
+.btn-view {
+    background: #17a2b8;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 0.8rem;
+    display: inline-block;
+}
+
+.btn-back {
+    background: #6c757d;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.no-data {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+</style>
+
+<%- include('../partials/footer') %>

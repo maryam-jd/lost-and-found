@@ -1,0 +1,408 @@
+<%- include('../partials/header', { title: item.name, user: user }) %>
+<% if (user) { %>
+    <%- include('../partials/dashboard-nav', { activeTab: 'all-items', user: user }) %>
+<% } %>
+
+<div class="container">
+    <!-- Success/Error Messages -->
+    <% if (success === 'claim_submitted') { %>
+        <div class="alert alert-success">
+            ✅ Claim submitted successfully! The item owner will contact you.
+        </div>
+    <% } %>
+    
+    <% if (error === 'claim_failed') { %>
+        <div class="alert alert-error">
+            ❌ Failed to submit claim. Please try again.
+        </div>
+    <% } %>
+    
+    <% if (error === 'cannot_claim_own_item') { %>
+        <div class="alert alert-error">
+            ❌ You cannot claim your own item.
+        </div>
+    <% } %>
+    
+    <% if (error === 'item_not_available') { %>
+        <div class="alert alert-error">
+            ❌ This item is not available for claiming.
+        </div>
+    <% } %>
+    
+    <% if (error === 'already_claimed') { %>
+        <div class="alert alert-error">
+            ❌ You have already submitted a claim for this item.
+        </div>
+    <% } %>
+
+    <div class="item-details-layout">
+        <!-- Main Item Info -->
+        <div class="item-main">
+            <div class="item-header">
+                <h1><%= item.name %></h1>
+                <div class="item-meta">
+                    <span class="item-type <%= item.type %>">
+                        <%= item.type === 'lost' ? '🔍 Lost Item' : '✅ Found Item' %>
+                    </span>
+                    <span class="status-<%= item.status %>">
+                        <%= item.status %>
+                    </span>
+                </div>
+            </div>
+
+            <div class="item-info-grid">
+                <div class="info-card">
+                    <h3>📋 Details</h3>
+                    <p><strong>Category:</strong> <%= item.category %></p>
+                    <p><strong>Location:</strong> <%= item.location %></p>
+                    <p><strong>Date:</strong> <%= new Date(item.date).toLocaleDateString() %></p>
+                    <p><strong>Reported on:</strong> <%= new Date(item.createdAt).toLocaleDateString() %></p>
+                </div>
+
+                <div class="info-card">
+                    <h3>👤 Reporter</h3>
+                    <p><strong>Name:</strong> <%= item.reportedBy.name %></p>
+                    <p><strong>Email:</strong> <%= item.reportedBy.email %></p>
+                    <% if (item.contactInfo && item.contactInfo.phone) { %>
+                        <p><strong>Phone:</strong> <%= item.contactInfo.phone %></p>
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="description-card">
+                <h3>📝 Description</h3>
+                <p><%= item.description %></p>
+            </div>
+
+            <% if (item.type === 'found') { %>
+                <% if (user && user._id != item.reportedBy._id && (item.status === 'available' || item.status === 'claim_pending')) { %>
+                    <% 
+                    // Check if current user already has a pending claim on this item
+                    const userHasPendingClaim = item.claimRequests && item.claimRequests.some(claim => 
+                        claim.user && claim.user._id && claim.user._id.toString() === user._id.toString() && claim.status === 'pending'
+                    );
+                    %>
+                    
+                    <% if (!userHasPendingClaim) { %>
+                    <div class="claim-section" style="margin: 2rem 0; padding: 1.5rem; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #0369a1;">
+                        <h3 style="margin-top: 0; color: #0369a1;">🔍 Is this your lost item?</h3>
+                        <p>If you believe this found item belongs to you, you can submit a claim to the person who found it.</p>
+                        <button type="button" class="btn btn-primary" onclick="showClaimForm()">
+                            📝 Claim This Item
+                        </button>
+                    </div>
+
+                    <%- include('../partials/claim-form') %>
+                    <% } else { %>
+                    <div class="info-section" style="margin: 2rem 0; padding: 1.5rem; background: #fef3c7; border-radius: 8px; border-left: 4px solid #d97706;">
+                        <h3 style="margin-top: 0; color: #92400e;">📝 Claim Pending</h3>
+                        <p>You have already submitted a claim for this item. The finder will review your claim and contact you.</p>
+                        <a href="/claims/my-submitted-claims" class="btn btn-outline">View My Claims</a>
+                    </div>
+                    <% } %>
+                <% } else if (user && user._id === item.reportedBy._id.toString()) { %>
+                <div class="owner-notice">
+                    <h3>ℹ️ Your Found Item</h3>
+                    <p>This is your found item. You will be notified when someone claims it.</p>
+                    <a href="/items/<%= item._id %>/claims" class="btn btn-primary">View Claims for This Item</a>
+                </div>
+                <% } else if (item.status !== 'available' && item.status !== 'claim_pending') { %>
+                <div class="status-notice">
+                    <h3>⏳ Item Status: <%= item.status %></h3>
+                    <p>This found item is not currently available for claiming.</p>
+                </div>
+                <% } %>
+            
+            <% } else if (item.type === 'lost') { %>
+                <% if (user && user._id === item.reportedBy._id.toString()) { %>
+                <div class="owner-notice">
+                    <h3>ℹ️ Your Lost Item</h3>
+                    <p>This is your lost item. If someone finds it, they can report it as found and you'll be able to claim it.</p>
+                </div>
+                <% } else { %>
+                <div class="info-section" style="margin: 2rem 0; padding: 1.5rem; background: #fef3c7; border-radius: 8px; border-left: 4px solid #d97706;">
+                    <h3 style="margin-top: 0; color: #92400e;">💡 Found this item?</h3>
+                    <p>If you found this lost item, please report it as a <strong>found item</strong> so the owner can claim it from you.</p>
+                    <a href="/items/report-found" class="btn btn-primary">Report Found Item</a>
+                </div>
+                <% } %>
+            <% } %>
+
+        </div>
+
+        <!-- Sidebar -->
+        <div class="item-sidebar">
+            <!-- Similar Items -->
+            <% if (similarItems && similarItems.length > 0) { %>
+            <div class="sidebar-card">
+                <h3>🔍 Similar Items</h3>
+                <div class="similar-items">
+                    <% similarItems.forEach(similarItem => { %>
+                    <div class="similar-item">
+                        <h4><%= similarItem.name %></h4>
+                        <p><%= similarItem.type === 'lost' ? '🔍 Lost' : '✅ Found' %> • <%= similarItem.category %></p>
+                        <a href="/items/<%= similarItem._id %>" class="btn btn-sm">View</a>
+                    </div>
+                    <% }) %>
+                </div>
+            </div>
+            <% } %>
+
+            <!-- Claim History -->
+            <% if (claimHistory && claimHistory.length > 0) { %>
+            <div class="sidebar-card">
+                <h3>📋 Claim History</h3>
+                <div class="claim-history">
+                    <% claimHistory.forEach(claim => { %>
+                    <div class="claim-item">
+                        <p><strong><%= claim.claimant.name %></strong></p>
+                        <p class="claim-status status-<%= claim.status %>"><%= claim.status %></p>
+                        <small><%= new Date(claim.createdAt).toLocaleDateString() %></small>
+                    </div>
+                    <% }) %>
+                </div>
+            </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<style>
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+
+.alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+.item-details-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.item-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.item-header {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.item-header h1 {
+    margin: 0 0 1rem 0;
+    color: #333;
+}
+
+.item-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.item-type, .status-available, .status-claim_pending, .status-returned {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.item-type.lost { background: #fff3cd; color: #856404; }
+.item-type.found { background: #d1ecf1; color: #0c5460; }
+.status-available { background: #d4edda; color: #155724; }
+.status-claim_pending { background: #fff3cd; color: #856404; }
+.status-returned { background: #d1ecf1; color: #0c5460; }
+
+.item-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.info-card, .description-card, .claim-form-card, .owner-notice, .status-notice {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.info-card h3, .description-card h3, .claim-form-card h3, .owner-notice h3, .status-notice h3 {
+    margin: 0 0 1rem 0;
+    color: #333;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 0.5rem;
+}
+
+.info-card p, .description-card p {
+    margin: 0.5rem 0;
+    color: #555;
+}
+
+.claim-form-card {
+    border-left: 4px solid #28a745;
+}
+
+.owner-notice {
+    border-left: 4px solid #17a2b8;
+    background: #d1ecf1;
+}
+
+.status-notice {
+    border-left: 4px solid #ffc107;
+    background: #fff3cd;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-textarea, .form-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.form-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-note {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1rem;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary { background: #4f46e5; color: white; font-weight: 500; }
+.btn-primary:hover { background: #4338ca; }
+.btn-outline { background: transparent; border: 2px solid #4f46e5; color: #4f46e5; }
+.btn-outline:hover { background: #4f46e5; color: white; }
+.btn-claim { background: #28a745; color: white; font-weight: 500; }
+.btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; background: #17a2b8; color: white; }
+
+.item-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sidebar-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.sidebar-card h3 {
+    margin: 0 0 1rem 0;
+    color: #333;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 0.5rem;
+}
+
+.similar-items, .claim-history {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.similar-item, .claim-item {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 5px;
+    border-left: 3px solid #667eea;
+}
+
+.similar-item h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+}
+
+.similar-item p {
+    margin: 0 0 0.5rem 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.claim-item p {
+    margin: 0.25rem 0;
+}
+
+.claim-status {
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    display: inline-block;
+}
+
+@media (max-width: 768px) {
+    .item-details-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .item-info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+function showClaimForm() {
+    document.getElementById('claimModal').style.display = 'block';
+}
+
+function hideClaimForm() {
+    document.getElementById('claimModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('claimModal');
+    if (event.target === modal) {
+        hideClaimForm();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        hideClaimForm();
+    }
+});
+</script>
+
+<%- include('../partials/footer') %>

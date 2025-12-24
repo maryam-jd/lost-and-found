@@ -1,0 +1,161 @@
+<%- include('../partials/header', { title: title, user: user }) %>
+
+<div class="container">
+    <div class="page-header">
+        <h1>🔔 Claims on My Items</h1>
+        <p>Review and manage claims on your reported items</p>
+    </div>
+
+    <% if (typeof success !== 'undefined' && success === 'claim_updated') { %>
+        <div class="alert alert-success">
+            ✅ Claim status updated successfully!
+        </div>
+    <% } %>
+    
+    <% if (typeof error !== 'undefined') { %>
+        <div class="alert alert-error">
+            <% if (error === 'claim_not_found') { %>
+                ❌ Claim not found.
+            <% } else if (error === 'not_authorized') { %>
+                ❌ You are not authorized to manage this claim.
+            <% } else if (error === 'update_failed') { %>
+                ❌ Failed to update claim status.
+            <% } else { %>
+                ❌ <%= error %>
+            <% } %>
+        </div>
+    <% } %>
+
+    <!-- Claims List -->
+    <div class="items-list">
+        <% if (claims.length > 0) { %>
+            <div class="items-count">
+                <p>Found <%= claims.length %> claim(s) on your items</p>
+            </div>
+            
+            <div class="claims-list">
+                <% claims.forEach(claim => { %>
+                    <div class="claim-item <%= claim.status %>">
+                        <div class="claim-header">
+                            <div>
+                                <strong>Claimant:</strong> <%= claim.claimant.name %>
+                                (<%= claim.claimant.email %>)
+                                <% if (claim.claimant.universityId) { %>
+                                    - ID: <%= claim.claimant.universityId %>
+                                <% } %>
+                            </div>
+                            <span class="status-badge <%= claim.status %>"><%= claim.status %></span>
+                        </div>
+                        
+                        <div class="claim-details">
+                            <p><strong>Item:</strong> 
+                                <a href="/items/<%= claim.item._id %>"><%= claim.item.name %></a>
+                                <span class="item-type-badge <%= claim.item.type %>"><%= claim.item.type %></span>
+                                <span class="item-category"><%= claim.item.category %></span>
+                            </p>
+                            
+                            <div class="claim-message">
+                                <strong>Why they think it's theirs:</strong>
+                                <p><%= claim.message %></p>
+                            </div>
+                            
+                            <div class="claim-proof">
+                                <strong>Proof provided:</strong>
+                                <p><%= claim.proofDescription %></p>
+                            </div>
+                            
+                            <p><strong>Contact Preference:</strong> <%= claim.contactPreference %></p>
+                            <p><strong>Submitted:</strong> <%= claim.createdAt.toLocaleDateString() %></p>
+                        </div>
+
+                        <!-- Action Form for Pending Claims -->
+                        <% if (claim.status === 'pending') { %>
+                        <div class="claim-actions">
+                            <form action="/dashboard/claims/<%= claim._id %>/update" method="POST" class="action-form">
+                                <div class="form-group">
+                                    <label for="adminNotes-<%= claim._id %>">Add Notes (Optional):</label>
+                                    <textarea 
+                                        id="adminNotes-<%= claim._id %>" 
+                                        name="adminNotes" 
+                                        placeholder="Add any notes for the claimant..."
+                                        rows="3"
+                                    ></textarea>
+                                </div>
+                                <div class="action-buttons">
+                                    <button type="submit" name="status" value="approved" class="btn btn-success">
+                                        ✅ Approve Claim
+                                    </button>
+                                    <button type="submit" name="status" value="rejected" class="btn btn-danger">
+                                        ❌ Reject Claim
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        <% } %>
+
+                        <% if (claim.adminNotes) { %>
+                            <div class="admin-notes">
+                                <strong>Your Notes:</strong> <%= claim.adminNotes %>
+                            </div>
+                        <% } %>
+                    </div>
+                <% }) %>
+            </div>
+            
+        <% } else { %>
+            <div class="no-items">
+                <div class="no-items-icon">🔔</div>
+                <h3>No claims found</h3>
+                <p>No one has claimed your items yet.</p>
+                <p>When someone claims your items, they will appear here for review.</p>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<style>
+.claim-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.action-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.action-buttons button {
+    flex: 1;
+    min-width: 140px;
+}
+
+.admin-notes {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 4px solid #007bff;
+    margin-top: 1rem;
+}
+
+.claim-message, .claim-proof {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    margin: 0.5rem 0;
+}
+
+.claim-message p, .claim-proof p {
+    margin: 0.5rem 0 0 0;
+    font-style: italic;
+}
+</style>
+
+<%- include('../partials/footer') %>

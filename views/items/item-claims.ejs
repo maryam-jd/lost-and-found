@@ -1,0 +1,185 @@
+<%- include('../partials/header', { title: title, user: user }) %>
+<%- include('../partials/dashboard-nav', { activeTab: 'my-items', user: user }) %>
+
+<div class="dashboard-content">
+    <!-- Back Button -->
+    <div style="margin-bottom: 1.5rem;">
+        <a href="/items/<%= item._id %>" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+            Back to Item
+        </a>
+    </div>
+
+    <!-- Item Info Header -->
+    <div class="item-header-card" style="background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h1 style="margin: 0; color: #333;">Claims for: <%= item.name %></h1>
+            <span class="item-type <%= item.type %>" style="padding: 0.5rem 1rem; border-radius: 20px; font-weight: 500;">
+                <%= item.type === 'found' ? '✅ Found Item' : '🔍 Lost Item' %>
+            </span>
+        </div>
+        <p style="color: #666; margin: 0;">
+            <strong>Category:</strong> <%= item.category %> • 
+            <strong>Status:</strong> <span class="status-<%= item.status %>"><%= item.status %></span> • 
+            <strong>Reported:</strong> <%= new Date(item.createdAt).toLocaleDateString() %>
+        </p>
+    </div>
+
+    <!-- Claims Section -->
+    <div class="section-header" style="margin-bottom: 1.5rem;">
+        <h2>📋 Claims Received (<%= claims.length %>)</h2>
+    </div>
+
+    <% if (claims && claims.length > 0) { %>
+        <div class="claims-grid" style="display: grid; gap: 1.5rem;">
+            <% claims.forEach(claim => { %>
+                <div class="claim-card <%= claim.status %>" style="background: white; border-radius: 10px; padding: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-left: 4px solid #6b7280;">
+                    <div class="claim-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin: 0; color: #374151;">Claim from: <%= claim.claimant.name %></h3>
+                        <span class="claim-status <%= claim.status %>" 
+                              style="padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.875rem; font-weight: 600;">
+                            <%= claim.status.charAt(0).toUpperCase() + claim.status.slice(1) %>
+                        </span>
+                    </div>
+                    
+                    <div class="claim-details" style="margin-bottom: 1.5rem;">
+                        <div class="detail-row" style="display: flex; margin-bottom: 0.75rem;">
+                            <strong style="min-width: 120px; color: #374151;">Claimant Email:</strong>
+                            <span><%= claim.claimant.email %></span>
+                        </div>
+                        
+                        <% if (claim.claimant.universityId) { %>
+                        <div class="detail-row" style="display: flex; margin-bottom: 0.75rem;">
+                            <strong style="min-width: 120px; color: #374151;">University ID:</strong>
+                            <span><%= claim.claimant.universityId %></span>
+                        </div>
+                        <% } %>
+                        
+                        <div class="detail-row" style="margin-bottom: 0.75rem;">
+                            <strong style="display: block; color: #374151; margin-bottom: 0.5rem;">Claim Message:</strong>
+                            <div class="claim-message" style="background: #f8fafc; padding: 1rem; border-radius: 6px; font-style: italic;">
+                                <%= claim.message %>
+                            </div>
+                        </div>
+                        
+                        <% if (claim.proofDescription) { %>
+                        <div class="detail-row" style="margin-bottom: 0.75rem;">
+                            <strong style="display: block; color: #374151; margin-bottom: 0.5rem;">Proof Provided:</strong>
+                            <div class="proof-description" style="background: #f8fafc; padding: 1rem; border-radius: 6px;">
+                                <%= claim.proofDescription %>
+                            </div>
+                        </div>
+                        <% } %>
+                        
+                        <div class="detail-row" style="display: flex; margin-bottom: 0.75rem;">
+                            <strong style="min-width: 120px; color: #374151;">Submitted:</strong>
+                            <span><%= claim.createdAt.toLocaleDateString() %> at <%= claim.createdAt.toLocaleTimeString() %></span>
+                        </div>
+                    </div>
+
+                    <% if (claim.status === 'pending') { %>
+                    <div class="claim-actions" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <form action="/items/<%= item._id %>/claims/<%= claim._id %>/approve" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-success" 
+                                    style="background: #10b981; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer;"
+                                    onclick="return confirm('Are you sure you want to approve this claim?')">
+                                ✅ Approve Claim
+                            </button>
+                        </form>
+                        
+                        <form action="/items/<%= item._id %>/claims/<%= claim._id %>/reject" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-danger"
+                                    style="background: #ef4444; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer;"
+                                    onclick="return confirm('Are you sure you want to reject this claim?')">
+                                ❌ Reject Claim
+                            </button>
+                        </form>
+                        
+                        <button type="button" class="btn btn-primary"
+                                style="background: #4f46e5; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer;"
+                                onclick="showContactForm('<%= claim._id %>')">
+                            📧 Contact Claimant
+                        </button>
+                    </div>
+
+                    <!-- Contact Form -->
+                    <div id="contactForm-<%= claim._id %>" class="contact-form" style="display: none; margin-top: 1rem; background: #f8fafc; padding: 1rem; border-radius: 6px; border: 1px solid #e5e7eb;">
+                        <form action="/items/<%= item._id %>/claims/<%= claim._id %>/contact" method="POST">
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label for="message-<%= claim._id %>" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Message to Claimant:</label>
+                                <textarea name="message" id="message-<%= claim._id %>" required 
+                                          placeholder="Write your message to the claimant..."
+                                          rows="4" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px;"></textarea>
+                            </div>
+                            <div class="form-actions" style="display: flex; gap: 0.5rem;">
+                                <button type="button" class="btn btn-secondary"
+                                        style="background: #6b7280; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer;"
+                                        onclick="hideContactForm('<%= claim._id %>')">Cancel</button>
+                                <button type="submit" class="btn btn-primary"
+                                        style="background: #4f46e5; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer;">Send Email</button>
+                            </div>
+                        </form>
+                    </div>
+                    <% } %>
+                </div>
+            <% }) %>
+        </div>
+    <% } else { %>
+        <div class="empty-state" style="text-align: center; padding: 3rem; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <div class="empty-icon" style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+            <h3 style="margin: 0 0 0.5rem 0; color: #333;">No claims yet</h3>
+            <p style="color: #666; margin-bottom: 1.5rem;">No one has claimed this item yet.</p>
+            <a href="/items/<%= item._id %>" class="btn btn-primary"
+               style="background: #4f46e5; color: white; padding: 0.75rem 1.5rem; text-decoration: none; border-radius: 5px; display: inline-block;">
+                Back to Item
+            </a>
+        </div>
+    <% } %>
+</div>
+
+<style>
+.claim-card.pending { border-left-color: #f59e0b; }
+.claim-card.approved { border-left-color: #10b981; }
+.claim-card.rejected { border-left-color: #ef4444; }
+
+.status-available { color: #059669; }
+.status-claim_pending { color: #d97706; }
+.status-returned { color: #1d4ed8; }
+
+.claim-status.pending { background: #fef3c7; color: #92400e; }
+.claim-status.approved { background: #d1fae5; color: #065f46; }
+.claim-status.rejected { background: #fee2e2; color: #991b1b; }
+</style>
+
+<script>
+function showContactForm(claimId) {
+    document.getElementById(`contactForm-${claimId}`).style.display = 'block';
+}
+
+function hideContactForm(claimId) {
+    document.getElementById(`contactForm-${claimId}`).style.display = 'none';
+}
+
+// Add event listeners for approve/reject forms
+document.addEventListener('DOMContentLoaded', function() {
+    const approveForms = document.querySelectorAll('form[action*="approve"]');
+    const rejectForms = document.querySelectorAll('form[action*="reject"]');
+    
+    approveForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!confirm('Are you sure you want to approve this claim?')) {
+                e.preventDefault();
+            }
+        });
+    });
+    
+    rejectForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!confirm('Are you sure you want to reject this claim?')) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>
+
+<%- include('../partials/footer') %>

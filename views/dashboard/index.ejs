@@ -1,0 +1,108 @@
+<%- include('../partials/header', { title: title, user: user }) %>
+<%- include('../partials/dashboard-nav', { activeTab: 'dashboard', user: user }) %>
+
+<div class="dashboard-content">
+    <!-- Welcome Box -->
+    <div class="welcome-container">
+        <h1 class="welcome-title">Welcome back, <%= user.name %>! 👋</h1>
+        <p class="welcome-subtitle">Here's your activity overview</p>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-overview">
+        <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-content">
+                <h3><%= stats.itemsCount %></h3>
+                <p>My Reported Items</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🎫</div>
+            <div class="stat-content">
+                <h3><%= stats.claimsCount %></h3>
+                <p>My Claims</p>
+            </div>
+        </div>
+    </div>
+    <!-- Notifications Section -->
+<% if (user.notifications && user.notifications.filter(n => !n.isRead).length > 0) { %>
+<div class="notifications-section">
+    <div class="section-header">
+        <h2>🔔 Notifications</h2>
+    </div>
+    <div class="notifications-list">
+        <% user.notifications.filter(n => !n.isRead).slice(0, 5).forEach(notification => { %>
+        <div class="notification-item">
+            <div class="notification-icon">
+                <% if (notification.type === 'new_claim') { %>📦<% } %>
+                <% if (notification.type === 'claim_approved') { %>✅<% } %>
+                <% if (notification.type === 'message_received') { %>💬<% } %>
+            </div>
+            <div class="notification-content">
+                <p class="notification-message"><%= notification.message %></p>
+                <small class="notification-time"><%= new Date(notification.createdAt).toLocaleDateString() %></small>
+            </div>
+            <div class="notification-actions">
+                <% if (notification.relatedItem) { %>
+                <a href="/items/<%= notification.relatedItem %>/claims" class="btn btn-small">View</a>
+                <% } %>
+            </div>
+        </div>
+        <% }) %>
+    </div>
+    <% if (user.notifications.filter(n => !n.isRead).length > 5) { %>
+    <div class="text-center">
+        <a href="/dashboard/notifications" class="btn btn-outline">View All Notifications</a>
+    </div>
+    <% } %>
+</div>
+<% } %>
+    <!-- Quick Actions -->
+    <div class="dashboard-section">
+        <div class="section-header">
+            <h2>Quick Actions</h2>
+        </div>
+        <div class="quick-actions">
+            <a href="/items/report-lost" class="quick-action-card">
+                <div class="action-icon">📝</div>
+                <h3>Report Lost Item</h3>
+                <p>Report an item you've lost</p>
+            </a>
+            <a href="/items/report-found" class="quick-action-card">
+                <div class="action-icon">🔍</div>
+                <h3>Report Found Item</h3>
+                <p>Report an item you've found</p>
+            </a>
+            <a href="/items" class="quick-action-card">
+                <div class="action-icon">📦</div>
+                <h3>Browse Items</h3>
+                <p>View all lost and found items</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Items -->
+    <% if (recentItems && recentItems.length > 0) { %>
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2>Recent Items</h2>
+                <a href="/dashboard/my-items" class="btn btn-outline">View All</a>
+            </div>
+            <div class="items-grid compact">
+                <% recentItems.forEach(item => { %>
+                    <div class="item-card compact">
+                        <div class="item-type <%= item.type %>">
+                            <%= item.type.charAt(0).toUpperCase() + item.type.slice(1) %>
+                        </div>
+                        <h4><%= item.name %></h4>
+                        <p class="item-location">📍 <%= item.location %></p>
+                        <p class="item-date">📅 <%= item.date.toLocaleDateString() %></p>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+    <% } %>
+</div>
+
+<%- include('../partials/footer') %>
