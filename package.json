@@ -4,12 +4,16 @@
   "description": "University Lost and Found Portal",
   "main": "app.js",
   "scripts": {
-  "start": "node app.js",
-  "dev": "nodemon app.js",
-  "build": "npm install"
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "build": "npm install"
+  },
+  "engines": {
+    "node": "18.x"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "connect-mongo": "^5.1.0",
     "dotenv": "^16.6.1",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
