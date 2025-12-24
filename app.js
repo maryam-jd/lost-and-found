@@ -1,7 +1,8 @@
+const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
-const path = require('path');
+
 require('dotenv').config();
 
 const app = express();
@@ -9,7 +10,7 @@ const app = express();
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Session configuration
 app.use(session({
