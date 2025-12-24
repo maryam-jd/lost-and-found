@@ -4,8 +4,9 @@
   "description": "University Lost and Found Portal",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js"
+  "start": "node app.js",
+  "dev": "nodemon app.js",
+  "build": "npm install"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
